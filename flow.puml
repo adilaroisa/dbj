@@ -1,0 +1,30 @@
+@startuml
+title Alur Pengolahan Data Jurnal DIY
+
+start
+:Admin menyiapkan data Jurnal\n(Format: Nama, Email, Univ, Sinta, dll);
+
+if (Data sudah ada di Excel?) then (Ya)
+  :Admin Upload file Excel ke Sistem;
+  :Express Backend memproses file\n(Library: xlsx/exceljs);
+  :Simpan semua data ke Database MySQL;
+else (Tidak)
+  :Admin Input manual via Form React;
+  :Simpan ke Database;
+endif
+
+:Sistem menampilkan Daftar Jurnal;
+
+partition "Fitur Update Sinta (Otomatis)" {
+  :Admin klik "Check Status Terbaru";
+  :Backend melakukan Scraping ke Sinta\nberdasarkan ISSN/Nama;
+  if (Ada perubahan peringkat?) then (Ya)
+    :Update kolom Sinta di Database;
+    :Beri notifikasi "Sinta Berubah";
+  else (Tidak)
+    :Tetap gunakan data lama;
+  endif
+}
+
+stop
+@endum
