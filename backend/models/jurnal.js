@@ -8,10 +8,10 @@ const Jurnal = sequelize.define('Jurnal', {
   },
   issn: {
     type: DataTypes.STRING,
-    allowNull: true // Sesuai flow: Admin bisa input nama dulu baru cari ISSN kemudian
+    allowNull: true 
   },
   url: {
-    type: DataTypes.STRING, // URL Jurnal asli
+    type: DataTypes.STRING, 
     allowNull: true
   },
   email: { 
@@ -32,9 +32,8 @@ const Jurnal = sequelize.define('Jurnal', {
   },
   akreditasi: { 
     type: DataTypes.STRING,
-    allowNull: true // Akan terisi otomatis oleh SintaServices: "SINTA 2" atau "Belum Terakreditasi"
+    allowNull: true 
   },
-  // Tambahan untuk menyimpan hasil Scrapping agar link tetap valid
   sinta_id: {
     type: DataTypes.STRING,
     allowNull: true
@@ -45,7 +44,7 @@ const Jurnal = sequelize.define('Jurnal', {
   }
 }, {
   tableName: 'jurnals',
-  timestamps: true // Bagus untuk tahu kapan terakhir data Sinta di-update
+  timestamps: true 
 });
 
 module.exports = Jurnal;

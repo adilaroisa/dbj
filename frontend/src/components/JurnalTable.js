@@ -1,18 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { getJurnals, syncSinta, deleteJurnal, updateJurnal } from '../services/api';
+import React, { useState, useEffect, useRef } from 'react';
+import { getJurnals, syncSinta, deleteJurnal, importExcel } from '../services/api';
 import '../styles/JurnalTable.css';
 
 const JurnalTable = ({ isAdmin }) => {
-    // 1. Inisialisasi state dengan ARRAY KOSONG [] bukan null/undefined
-    const [jurnals, setJurnals] = useState([]); 
-    const [loading, setLoading] = useState(true); // Tambah state loading
-    const [error, setError] = useState('');
+    const [jurnals, setJurnals] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
+    
+    const fileInputRef = useRef(null);
 
-    // State untuk mode edit
-    const [editingId, setEditingId] = useState(null);
-    const [editData, setEditData] = useState({});
-
-    // Ambil data saat komponen pertama kali muncul
     useEffect(() => {
         fetchData();
     }, []);
@@ -21,71 +17,86 @@ const JurnalTable = ({ isAdmin }) => {
         try {
             setLoading(true);
             const response = await getJurnals();
-            // PENGAMAN: Pastikan response.data itu array, kalau bukan, kasih array kosong
             setJurnals(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
-            setError('Gagal mengambil data jurnal.');
             console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
-    // Fungsi Update Sinta Otomatis
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            setUploading(true);
+            const res = await importExcel(formData);
+            alert(res.data.message);
+            fetchData(); 
+        } catch (err) {
+            alert('Gagal Import: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setUploading(false);
+            e.target.value = null; 
+        }
+    };
+
     const handleSync = async (id, issn) => {
         if (!issn) return alert('ISSN kosong, tidak bisa sync!');
         try {
-            alert('Sedang sinkronisasi... Mohon tunggu.');
+            alert(`Sedang sinkronisasi ISSN ${issn}...`);
             await syncSinta(id);
-            fetchData(); // Refresh tabel setelah sukses
-            alert('Sukses update data Sinta!');
+            await fetchData(); 
+            alert('Berhasil Update dari Sinta!');
         } catch (err) {
-            alert('Gagal update: ' + (err.response?.data?.message || err.message));
+            alert('Gagal Sync: ' + (err.response?.data?.message || err.message));
         }
     };
 
-    // Fungsi Hapus
     const handleDelete = async (id) => {
-        if (window.confirm('Yakin mau hapus jurnal ini?')) {
-            try {
-                await deleteJurnal(id);
-                fetchData();
-            } catch (err) {
-                alert('Gagal menghapus');
-            }
-        }
-    };
-
-    // Fungsi Mulai Edit
-    const startEdit = (jurnal) => {
-        setEditingId(jurnal.id);
-        setEditData(jurnal);
-    };
-
-    // Fungsi Simpan Edit (Manual)
-    const saveEdit = async () => {
-        try {
-            await updateJurnal(editingId, editData);
-            setEditingId(null);
+        if (window.confirm('Yakin hapus jurnal ini?')) {
+            await deleteJurnal(id);
             fetchData();
-        } catch (err) {
-            alert('Gagal menyimpan perubahan');
         }
     };
-
-    if (loading) return <div style={{textAlign:'center', padding:'20px'}}>Memuat data jurnal...</div>;
-    if (error) return <div style={{color:'red', textAlign:'center'}}>{error}</div>;
 
     return (
         <div className="table-container">
+            <div className="toolbar">
+                <h3>Data Jurnal Terdaftar</h3>
+                <div className="toolbar-actions">
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        style={{ display: 'none' }} 
+                        accept=".xlsx, .xls"
+                        onChange={handleFileChange}
+                    />
+                    <button 
+                        className="btn-import" 
+                        onClick={() => fileInputRef.current.click()}
+                        disabled={uploading}
+                    >
+                        {uploading ? 'Mengupload...' : '📂 Import Excel'}
+                    </button>
+                    <button className="btn-add" onClick={() => alert('Fitur tambah manual menyusul')}>
+                        + Tambah Manual
+                    </button>
+                </div>
+            </div>
+
             <table className="jurnal-table">
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>Nama Jurnal</th>
-                        <th>Institusi</th>
-                        <th>Akreditasi</th>
-                        <th>ISSN</th>
+                        <th>Jurnal & Institusi</th>
+                        <th>ISSN & Validasi</th>
+                        <th>Akreditasi Sinta</th>
+                        <th>Kontak (Internal)</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -94,73 +105,65 @@ const JurnalTable = ({ isAdmin }) => {
                         jurnals.map((jurnal, index) => (
                             <tr key={jurnal.id}>
                                 <td>{index + 1}</td>
-              
+                                
                                 <td>
-                                    {editingId === jurnal.id ? (
-                                        <input 
-                                            value={editData.nama} 
-                                            onChange={e => setEditData({...editData, nama: e.target.value})}
-                                        />
-                                    ) : (
-                                        <a href={jurnal.url} target="_blank" rel="noreferrer">{jurnal.nama}</a>
-                                    )}
+                                    <div className="jurnal-info">
+                                        <a href={jurnal.url || '#'} target="_blank" rel="noreferrer" className="jurnal-link">
+                                            {jurnal.nama}
+                                        </a>
+                                        <small>{jurnal.penerbit || 'Tidak ada data penerbit'}</small>
+                                        
+                                
+                                        {jurnal.member_doi_rji && <span className="badge-rji">Member RJI</span>}
+                                    </div>
                                 </td>
 
-                                <td>{jurnal.penerbit || '-'}</td>
+                                <td>
+                                    {jurnal.issn ? (
+                                        <div className="issn-box">
+                                            <span>{jurnal.issn}</span>
+                                            <a 
+                                                href={`https://portal.issn.org/resource/ISSN/${jurnal.issn}`} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="link-validasi"
+                                            >
+                                                 Validasi
+                                            </a>
+                                        </div>
+                                    ) : <span className="text-muted">-</span>}
+                                </td>
 
                                 <td>
-                                    <span className={`badge ${jurnal.akreditasi ? jurnal.akreditasi.replace(' ', '-').toLowerCase() : 'na'}`}>
+                                    <span className={`badge-sinta ${jurnal.akreditasi ? jurnal.akreditasi.replace(' ', '') : 'na'}`}>
                                         {jurnal.akreditasi || 'Belum Terakreditasi'}
                                     </span>
                                 </td>
 
                                 <td>
-                                    {editingId === jurnal.id ? (
-                                        <input 
-                                            value={editData.issn || ''} 
-                                            onChange={e => setEditData({...editData, issn: e.target.value})}
-                                        />
-                                    ) : (
-                                        jurnal.issn || '-'
-                                    )}
+                                    <div className="contact-info">
+                                        {jurnal.email && <div> {jurnal.email}</div>}
+                                        {jurnal.kontak && <div> {jurnal.kontak}</div>}
+                                        {!jurnal.email && !jurnal.kontak && <span className="text-muted">-</span>}
+                                    </div>
                                 </td>
 
                                 <td>
                                     <div className="action-buttons">
-                                
-                                        {jurnal.url_sinta && (
-                                            <a href={jurnal.url_sinta} target="_blank" rel="noreferrer" className="btn-link">
-                                                🔍 Cek Sinta
-                                            </a>
-                                        )}
-
-                                        {isAdmin && (
-                                            <>
-                                                {editingId === jurnal.id ? (
-                                                    <button onClick={saveEdit} className="btn-save">💾 Simpan</button>
-                                                ) : (
-                                                    <button onClick={() => startEdit(jurnal)} className="btn-edit">✏️ Edit</button>
-                                                )}
-
-                                                <button 
-                                                    onClick={() => handleSync(jurnal.id, jurnal.issn)} 
-                                                    className="btn-sync"
-                                                    title="Update otomatis dari Sinta"
-                                                >
-                                                    🔄 Sync
-                                                </button>
-                                                
-                                                <button onClick={() => handleDelete(jurnal.id)} className="btn-delete">🗑️</button>
-                                            </>
-                                        )}
+                                        <button 
+                                            onClick={() => handleSync(jurnal.id, jurnal.issn)} 
+                                            className="btn-sync"
+                                            title="Update Akreditasi dari Sinta"
+                                        >
+                                            Sync
+                                        </button>
+                                        <button onClick={() => handleDelete(jurnal.id)} className="btn-delete"></button>
                                     </div>
                                 </td>
                             </tr>
                         ))
                     ) : (
-                        <tr>
-                            <td colSpan="6" style={{textAlign: 'center'}}>Belum ada data jurnal.</td>
-                        </tr>
+                        <tr><td colSpan="6" align="center">Belum ada data. Silakan Import Excel.</td></tr>
                     )}
                 </tbody>
             </table>

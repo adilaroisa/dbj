@@ -1,31 +1,117 @@
 const express = require('express');
-const router = express.Router(); 
+const router = express.Router();
 const Jurnal = require('../models/jurnal');
 const { fetchSintaData } = require('../services/SintaServices');
+const auth = require('../middleware/auth');
+const multer = require('multer');
+const xlsx = require('xlsx');
+const fs = require('fs');
 
-// Endpoint Sinkronisasi otomatis sesuai Flowchart
-router.patch('/:id/sync-sinta', async (req, res) => {
+const upload = multer({ dest: 'uploads/' });
+
+router.post('/import', auth, upload.single('file'), async (req, res) => {
     try {
-        const jurnal = await Jurnal.findByPk(req.params.id);
-        if (!jurnal || !jurnal.issn) {
-            return res.status(400).json({ message: 'Jurnal tidak ditemukan atau ISSN kosong' });
-        }
+        if (!req.file) return res.status(400).json({ message: 'File Excel wajib diupload' });
 
-        const sintaInfo = await fetchSintaData(jurnal.issn);
+        const workbook = xlsx.readFile(req.file.path);
+        const sheetName = workbook.SheetNames[0];
+        const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-        if (sintaInfo) {
-            // Update data sesuai hasil discovery
-            await jurnal.update({
-                akreditasi: sintaInfo.akreditasi,
-                sinta_id: sintaInfo.sinta_id, // Pastikan kolom ini ada di model
-                url_sinta: sintaInfo.url_sinta
+        let successCount = 0;
+
+        for (const row of data) {
+            const nama = row['Nama Jurnal'] || row['Nama'] || 'Tanpa Nama';
+            const penerbit = row['Institusi'] || row['Penerbit'] || '-';
+            const issn = row['ISSN'] ? String(row['ISSN']).replace(/-/g, '') : null;
+            const email = row['Email'] || null;
+            const kontak = row['Kontak'] || row['WA'] || row['Whatsapp'] || null;
+            const url = row['Website'] || row['URL'] || row['Link'] || null;
+            const member_doi_rji = row['Member RJI'] ? true : false;
+
+            const existing = await Jurnal.findOne({ 
+                where: issn ? { issn } : { nama } 
             });
-            res.json({ message: 'Data Sinta berhasil diperbarui', data: jurnal });
-        } else {
-            res.status(404).json({ message: 'Data tidak ditemukan di portal Sinta' });
+
+            if (!existing) {
+                await Jurnal.create({
+                    nama, penerbit, issn, email, kontak, url, member_doi_rji
+                });
+                successCount++;
+            }
         }
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+
+        fs.unlinkSync(req.file.path);
+        res.json({ message: `Import Berhasil! ${successCount} jurnal baru ditambahkan.` });
+
+    } catch (err) {
+        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        res.status(500).json({ message: 'Gagal Import: ' + err.message });
+    }
+});
+
+// --- 2. SYNC SINTA ---
+router.patch('/:id/sync-sinta', auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const jurnal = await Jurnal.findByPk(id);
+
+        if (!jurnal || !jurnal.issn) {
+            return res.status(400).json({ message: 'Jurnal tidak ditemukan atau ISSN kosong.' });
+        }
+
+        const sintaData = await fetchSintaData(jurnal.issn);
+
+        if (sintaData) {
+            jurnal.akreditasi = sintaData.score;
+            jurnal.sinta_id = sintaData.sintaId;
+            jurnal.url_sinta = `https://sinta.kemdiktisaintek.go.id/journals/profile/${sintaData.sintaId}`;
+            await jurnal.save();
+
+            return res.json({ message: 'Sync Sukses', data: sintaData });
+        } else {
+            jurnal.akreditasi = "Belum Terakreditasi";
+            await jurnal.save();
+            return res.status(404).json({ message: 'Data tidak ditemukan di Sinta' });
+        }
+
+    } catch (err) {
+        res.status(500).json({ message: 'Gagal Sync: ' + err.message });
+    }
+});
+
+router.get('/', async (req, res) => {
+    try {
+        const jurnals = await Jurnal.findAll({ order: [['updatedAt', 'DESC']] });
+        res.json(jurnals);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.post('/', auth, async (req, res) => {
+    try {
+        const jurnal = await Jurnal.create(req.body);
+        res.status(201).json(jurnal);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+router.put('/:id', auth, async (req, res) => {
+    try {
+        await Jurnal.update(req.body, { where: { id: req.params.id } });
+        res.json({ message: 'Update berhasil' });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+router.delete('/:id', auth, async (req, res) => {
+    try {
+        await Jurnal.destroy({ where: { id: req.params.id } });
+        res.json({ message: 'Berhasil dihapus' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 
