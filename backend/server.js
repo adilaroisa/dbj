@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/db');
-const Jurnal = require('./models/Jurnal');
+const Jurnal = require('./models/jurnal');
 const { fetchSintaData } = require('./services/sintaService');
 
 const app = express();

@@ -1,30 +1,41 @@
 @startuml
-title Alur Pengolahan Data Jurnal DIY
+title Alur Pengolahan & Validasi Data Jurnal DIY (Sesuai Transkrip)
 
 start
-:Admin menyiapkan data Jurnal\n(Format: Nama, Email, Univ, Sinta, dll);
+:Admin Masuk ke Sistem;
 
-if (Data sudah ada di Excel?) then (Ya)
-  :Admin Upload file Excel ke Sistem;
-  :Express Backend memproses file\n(Library: xlsx/exceljs);
-  :Simpan semua data ke Database MySQL;
-else (Tidak)
-  :Admin Input manual via Form React;
-  :Simpan ke Database;
+if (Metode Pengumpulan Data?) then (Bulk Import Excel)
+  :Upload file Excel;
+  :Sistem ekstrak Nama, Univ, Email, WA, Member RJI;
+else (Manual Input / New Discovery)
+  :Admin cari jurnal baru di web Kampus DIY;
+  :Input Nama Jurnal & Universitas;
+  :Input Data Internal (Email & WA Pengelola);
 endif
 
-:Sistem menampilkan Daftar Jurnal;
+partition "Validasi & Sinkronisasi Sinta (Metode Pak Fuad)" {
+  if (ISSN sudah ada?) then (Tidak)
+    :Sistem/Admin cari Nama Jurnal di sinta.kemdiktisaintek.go.id;
+    :Temukan 8 digit ISSN (tanpa strip);
+    :Input/Simpan ISSN ke Sistem;
+  endif
 
-partition "Fitur Update Sinta (Otomatis)" {
-  :Admin klik "Check Status Terbaru";
-  :Backend melakukan Scraping ke Sinta\nberdasarkan ISSN/Nama;
-  if (Ada perubahan peringkat?) then (Ya)
-    :Update kolom Sinta di Database;
-    :Beri notifikasi "Sinta Berubah";
+  :Sistem Sync Data via ISSN;
+  :Ambil Skor Sinta (S1-S6), Sinta ID, & Garuda ID;
+  if (Data Ditemukan?) then (Ya)
+    :Update Label "Sinta X";
   else (Tidak)
-    :Tetap gunakan data lama;
+    :Label "Belum Terakreditasi";
   endif
 }
 
+partition "Finalisasi Data (Tampilan Publik)" {
+  :Generate Link Dinamis portal.issn.org;
+  :Generate Link Profil Sinta & Garuda;
+  :Admin Verifikasi Akhir;
+  :Simpan Permanen ke Database MySQL;
+}
+
+:Data tampil di Tabel Publik DIY;
 stop
-@endum
+@enduml
