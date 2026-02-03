@@ -1,10 +1,10 @@
 @startuml
-title Alur Pengolahan & Validasi Data Jurnal DIY (Sesuai Transkrip)
+title Alur Pengolahan & Validasi Data Jurnal DIY 
 
 start
 :Admin Masuk ke Sistem;
 
-if (Metode Pengumpulan Data?) then (Bulk Import Excel)
+if (Metode Pengumpulan Data?) then (Import Excel)
   :Upload file Excel;
   :Sistem ekstrak Nama, Univ, Email, WA, Member RJI;
 else (Manual Input / New Discovery)
@@ -36,6 +36,6 @@ partition "Finalisasi Data (Tampilan Publik)" {
   :Simpan Permanen ke Database MySQL;
 }
 
-:Data tampil di Tabel Publik DIY;
+:Data tampil di Tabel Jurnal DIY;
 stop
 @enduml

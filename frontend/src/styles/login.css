@@ -1,0 +1,8 @@
+/* Tambahan CSS untuk Login */
+.message-box { padding: 10px; margin-bottom: 10px; border-radius: 4px; font-size: 0.9rem; }
+.message-box.error { background: #ffdddd; color: #c0392b; border: 1px solid #e74c3c; }
+.message-box.success { background: #ddffdd; color: #27ae60; border: 1px solid #2ecc71; }
+
+.switch-mode { margin-top: 15px; font-size: 0.9rem; }
+.switch-mode span { color: #0061f2; cursor: pointer; font-weight: bold; text-decoration: underline; }
+.switch-mode span:hover { color: #0041a3; }

@@ -6,24 +6,23 @@ const Jurnal = sequelize.define('Jurnal', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  // ISSN seharusnya ada, tapi kita buat optional dulu jika di Excel belum ada
   issn: {
     type: DataTypes.STRING,
-    allowNull: true 
+    allowNull: true // Sesuai flow: Admin bisa input nama dulu baru cari ISSN kemudian
   },
   url: {
+    type: DataTypes.STRING, // URL Jurnal asli
+    allowNull: true
+  },
+  email: { 
     type: DataTypes.STRING,
     allowNull: true
   },
-  email: { // Data Internal
+  kontak: { 
     type: DataTypes.STRING,
     allowNull: true
   },
-  kontak: { // Data Internal (No HP)
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  penerbit: { // Nama Kampus/Institusi
+  penerbit: { 
     type: DataTypes.STRING,
     allowNull: true
   },
@@ -31,12 +30,22 @@ const Jurnal = sequelize.define('Jurnal', {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  akreditasi: { // Misal: "SINTA 2"
+  akreditasi: { 
+    type: DataTypes.STRING,
+    allowNull: true // Akan terisi otomatis oleh SintaServices: "SINTA 2" atau "Belum Terakreditasi"
+  },
+  // Tambahan untuk menyimpan hasil Scrapping agar link tetap valid
+  sinta_id: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  url_sinta: {
     type: DataTypes.STRING,
     allowNull: true
   }
 }, {
-  tableName: 'jurnals'
+  tableName: 'jurnals',
+  timestamps: true // Bagus untuk tahu kapan terakhir data Sinta di-update
 });
 
 module.exports = Jurnal;
