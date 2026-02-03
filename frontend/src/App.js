@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import JurnalTable from './components/JurnalTable';
+import JurnalTable from './components/Dashboard';
 import Login from './components/login'; 
 import Register from './components/register'; 
 import './App.css';
