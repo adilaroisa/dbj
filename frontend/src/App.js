@@ -1,28 +1,43 @@
-// src/App.js
-import React from 'react';
+import React, { useState } from 'react'; 
 import JurnalTable from './components/JurnalTable';
+import Login from './components/login'; 
+import './App.css';
 
 function App() {
-  // Gunakan data dummy ini untuk memastikan tabel muncul di browser
-  const dataDummy = [
-    {
-      nama: "Insisiva Dental Journal: Majalah Kedokteran Gigi Insisiva",
-      issn: "2338-6313", 
-      univ: "Universitas Muhammadiyah Yogyakarta", // Sesuai data UMY yang kamu punya
-      email: "idj@umy.ac.id",
-      tlpn: "08123456789",
-      sinta_score: "3",
-      // Gunakan domain terbaru yang kamu temukan tadi agar tidak Error 404
-      url_sinta: "https://sinta.kemdiktisaintek.go.id/journals/detail?id=6789"
-    }
-  ];
+  // 1. State untuk menyimpan status login (berdasarkan token)
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
-  return (
-    <div className="p-10">
-      <h1 className="text-2xl font-bold mb-5 text-center">Database Jurnal DIY (Internal Admin)</h1>
-      <div className="bg-white shadow-md rounded-lg p-5">
-        <JurnalTable dataJurnal={dataDummy} />
+  // 2. Fungsi Logout
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Hapus token dari memori
+    setToken(null); // Reset state agar tampilan kembali ke Login
+  };
+
+
+  if (!token) {
+    return (
+      <div className="app-container">
+        <Login onLogin={() => setToken(localStorage.getItem('token'))} />
       </div>
+    );
+  }
+
+  // 4. Jika Token ADA (Sudah Login), baru tampilkan Dashboard Utama
+  return (
+    <div className="App">
+      <header className="App-header">
+        <div className="header-content">
+          <h1>Database Jurnal D.I. Yogyakarta</h1>
+          <p className="subtitle">Admin Dashboard</p>
+        </div>
+        <button onClick={handleLogout} className="btn-logout">
+          Keluar (Logout)
+        </button>
+      </header>
+
+      <main className="main-content">
+        <JurnalTable isAdmin={true} />
+      </main>
     </div>
   );
 }
