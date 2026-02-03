@@ -4,8 +4,8 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Kunci Rahasia untuk Token (Bisa ganti sesuka hati)
-const JWT_SECRET = process.env.JWT_SECRET || 'rahasia_negara_diy_2026';
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // 1. REGISTER (DAFTAR)
 router.post('/register', async (req, res) => {

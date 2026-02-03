@@ -1,4 +1,6 @@
-// ... import existing ...
+const express = require('express');
+const router = express.Router(); 
+const Jurnal = require('../models/jurnal');
 const { fetchSintaData } = require('../services/SintaServices');
 
 // Endpoint Sinkronisasi otomatis sesuai Flowchart
