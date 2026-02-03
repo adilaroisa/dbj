@@ -13,7 +13,7 @@ else (Manual Input / New Discovery)
   :Input Data Internal (Email & WA Pengelola);
 endif
 
-partition "Validasi & Sinkronisasi Sinta (Metode Pak Fuad)" {
+partition "Validasi & Sinkronisasi Sinta" {
   if (ISSN sudah ada?) then (Tidak)
     :Sistem/Admin cari Nama Jurnal di sinta.kemdiktisaintek.go.id;
     :Temukan 8 digit ISSN (tanpa strip);
