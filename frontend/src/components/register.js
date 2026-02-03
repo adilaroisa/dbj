@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import api from '../services/api'; 
-import '../styles/login.css'; 
+import '../styles/login.css'; // Pakai CSS yang sama biar tema SAMA
 
-const Login = ({ onLogin, onSwitchToRegister }) => {
-    // State Form Login
+const Register = ({ onSwitchToLogin }) => {
+    // State Form
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [message, setMessage] = useState({ type: '', text: '' });
     const [loading, setLoading] = useState(false);
@@ -15,11 +15,20 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
         setLoading(true);
 
         try {
-            const res = await api.post('/auth/login', formData);
-            localStorage.setItem('token', res.data.token);
-            onLogin();
+            // Nembak ke endpoint Register
+            await api.post('/auth/register', formData);
+            setMessage({ type: 'success', text: 'Registrasi Berhasil! Silakan Login.' });
+            
+            // Hapus form biar bersih
+            setFormData({ username: '', password: '' });
+            
+            // Opsional: Otomatis pindah ke login setelah 2 detik
+            setTimeout(() => {
+                onSwitchToLogin();
+            }, 2000);
+
         } catch (err) {
-            const errMsg = err.response?.data?.message || 'Gagal Login';
+            const errMsg = err.response?.data?.message || 'Gagal Mendaftar';
             setMessage({ type: 'error', text: errMsg });
         } finally {
             setLoading(false);
@@ -29,8 +38,8 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
     return (
         <div className="login-container">
             <div className="login-card">
-                <h2>Login Admin</h2>
-                <p>Silakan masuk untuk mengelola database</p>
+                <h2>Daftar Admin Baru</h2>
+                <p>Buat akun untuk mengelola jurnal</p>
                 
                 {message.text && (
                     <div className={`message-box ${message.type}`}>
@@ -41,7 +50,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
                 <form onSubmit={handleSubmit}>
                     <input 
                         type="text" 
-                        placeholder="Username" 
+                        placeholder="Buat Username" 
                         value={formData.username}
                         onChange={e => setFormData({...formData, username: e.target.value})}
                         required
@@ -50,7 +59,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
                     <div className="password-wrapper">
                         <input 
                             type={showPassword ? "text" : "password"} 
-                            placeholder="Password" 
+                            placeholder="Buat Password" 
                             value={formData.password}
                             onChange={e => setFormData({...formData, password: e.target.value})}
                             required
@@ -65,17 +74,18 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
                     </div>
 
                     <button type="submit" disabled={loading}>
-                        {loading ? 'Masuk...' : 'MASUK'}
+                        {loading ? 'Memproses...' : 'DAFTAR SEKARANG'}
                     </button>
                 </form>
                 
+                {/* Navigasi Kembali ke Login */}
                 <div className="switch-mode">
-                    Belum punya akun? 
-                    <span onClick={onSwitchToRegister}>Daftar di sini</span>
+                    Sudah punya akun? 
+                    <span onClick={onSwitchToLogin}>Login di sini</span>
                 </div>
             </div>
         </div>
     );
 };
 
-export default Login;
+export default Register;
