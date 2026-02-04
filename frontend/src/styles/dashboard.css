@@ -1,0 +1,194 @@
+/* --- LAYOUT UTAMA --- */
+.dashboard-layout {
+    display: flex;
+    height: 100vh;
+    background-color: #f4f6f9; /* Background abu-abu muda ala admin */
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+}
+
+/* --- SIDEBAR (KIRI) --- */
+.sidebar {
+    width: 260px;
+    background-color: #1a1a1a; /* Hitam Elegan */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-header {
+    padding: 25px;
+    border-bottom: 1px solid #333;
+    text-align: center;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    color: #FF8A00; /* Primary Color */
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.badge-admin {
+    background: #333;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #bbb;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+/* Menu Navigasi */
+.sidebar-menu {
+    flex: 1;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.menu-item {
+    padding: 15px 25px;
+    color: #bbb;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.menu-item:hover {
+    background-color: #333;
+    color: white;
+    border-left: 4px solid #FF8A00; /* Indikator Oranye */
+}
+
+.menu-item.active {
+    background-color: #2c2c2c;
+    color: #FF8A00;
+    border-left: 4px solid #FF8A00;
+}
+
+.menu-item .icon {
+    font-size: 1.2rem;
+}
+
+/* Footer Sidebar (Logout) */
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid #333;
+}
+
+.btn-logout-side {
+    width: 100%;
+    padding: 12px;
+    background: #c0392b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-logout-side:hover {
+    background: #e74c3c;
+}
+
+/* --- MAIN CONTENT (KANAN) --- */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Scrollable jika tabel panjang */
+}
+
+/* Top Bar */
+.top-bar {
+    background: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.top-bar h3 {
+    margin: 0;
+    color: #333;
+}
+
+.user-profile {
+    font-weight: 600;
+    color: #555;
+}
+
+/* Wrapper Tabel */
+.content-wrapper {
+    padding: 30px;
+}
+
+/* --- TABEL STYLING (Penyesuaian untuk Layout Baru) --- */
+.jurnal-table {
+    width: 100%;
+    background: white;
+    border-radius: 10px;
+    border-collapse: separate;
+    border-spacing: 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    overflow: hidden; /* Biar radius kelihatan */
+}
+
+.jurnal-table thead {
+    background: #FF8A00; /* Primary Color */
+    color: white;
+}
+
+.jurnal-table th {
+    padding: 15px;
+    text-align: left;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.jurnal-table td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+    vertical-align: top;
+}
+
+.jurnal-table tbody tr:hover {
+    background-color: #fff9f0; /* Efek hover baris */
+}
+
+/* Komponen Kecil */
+.jurnal-link { font-weight: bold; color: #000; text-decoration: none; display: block; }
+.jurnal-link:hover { color: #FF8A00; text-decoration: underline; }
+
+.badge-rji { background: #003366; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-right: 5px; }
+.link-external-garuda { background: #d35400; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-decoration: none; }
+
+.badge-sinta { display: inline-block; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; color: white; margin-bottom: 5px; }
+.badge-sinta.S1 { background: #f1c40f; color: black; }
+.badge-sinta.S2 { background: #95a5a6; color: black; }
+.badge-sinta.S3 { background: #e67e22; }
+.badge-sinta.S4, .badge-sinta.S5, .badge-sinta.S6 { background: #3498db; }
+.badge-sinta.na { background: #ddd; color: #777; }
+
+.link-sinta-small { font-size: 0.75rem; color: #2980b9; display: block; text-decoration: none; }
+.link-validasi { color: #27ae60; font-size: 0.8rem; text-decoration: none; font-weight: 600; display: block; margin-top: 5px; }
+
+.action-buttons { display: flex; gap: 5px; }
+.btn-sync { background: #34495e; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+.btn-sync:hover { background: #FF8A00; }
+.btn-delete { background: white; border: 1px solid #e74c3c; color: #e74c3c; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+.btn-delete:hover { background: #e74c3c; color: white; }

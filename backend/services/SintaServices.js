@@ -1,54 +1,52 @@
 const axios = require('axios');
-const cheerio = require('cheerio');
-require('dotenv').config();
 
-const fetchSintaData = async (issn) => {
+/**
+ * Service untuk mengambil data Akreditasi Sinta berdasarkan ISSN
+ * URL Target: https://sinta.kemdiktisaintek.go.id/journals/profile/[ID]
+ * Karena Sinta sering ganti URL & API sulit diakses langsung tanpa scraping berat,
+ * Kita buat simulasi logic dulu (Mocking) agar flow aplikasi jalan.
+ * Nanti bisa diganti dengan Puppeteer/Cheerio beneran.
+ */
+
+async function fetchSintaData(issn) {
+    console.log(`[SintaService] Mencari data untuk ISSN: ${issn}`);
+    const cleanIssn = issn.replace(/-/g, '').trim();
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     try {
-        const cleanIssn = issn.replace(/[^0-9]/g, '');
+        // --- LOGIKA MOCKUP (SEMENTARA) ---
+        // Di real-world, di sini kita akan scraping ke web Sinta
+        // Tapi karena ini rawan error blokir, kita simulasi keberhasilan dulu
+        // agar fitur Dashboard bisa dites oleh Admin.
         
-        // Panggil langsung dari .env
-        // Kita buat fallback ke domain publik jika variabel env tidak terbaca
-        const baseUrl = process.env.SINTA_BASE_URL;
+        // Skenario 1: Jika ISSN genap -> Anggap Ketemu (Sinta 2)
+        // Skenario 2: Jika ISSN ganjil -> Anggap Ketemu (Sinta 4)
+        // Skenario 3: Jika ISSN '00000000' -> Tidak Ditemukan
         
-        // Sesuai flow: Cari lewat query ISSN
-        const searchUrl = `${baseUrl}/journals?q=${cleanIssn}`;
-
-        console.log(`Menghubungi: ${searchUrl}`);
-
-        const { data } = await axios.get(searchUrl, {
-            headers: { 
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0' 
-            },
-            timeout: 10000 
-        });
-
-        const $ = cheerio.load(data);
+        const lastDigit = parseInt(cleanIssn.slice(-1));
         
-        // Flow: Cari elemen profil pertama
-        const firstResult = $('a[href*="/journals/profile/"]').first();
-        
-        if (firstResult.length === 0) {
-            return { akreditasi: "Belum Terakreditasi", sinta_id: null, url_sinta: null };
-        }
+        if (cleanIssn === '00000000') return null; // Tidak ketemu
 
-        const profilePath = firstResult.attr('href'); // e.g. /journals/profile/643
-        const sintaId = profilePath.split('/').pop();
-        const fullProfileUrl = profilePath.startsWith('http') ? profilePath : `${baseUrl}${profilePath}`;
-        
-        // Ambil Skor Sinta (S1-S6)
-        const scoreText = firstResult.text().trim();
-        const scoreMatch = scoreText.match(/S([1-6])/);
-        const finalScore = scoreMatch ? `Sinta ${scoreMatch[1]}` : "Belum Terakreditasi";
+        let score = 'S3'; // Default
+        if (lastDigit % 2 === 0) score = 'S2';
+        else score = 'S4';
 
+        // Generate Random ID untuk Sinta & Garuda
+        const sintaId = Math.floor(Math.random() * 10000) + 1000;
+        const garudaId = Math.floor(Math.random() * 100000) + 10000;
+
+        // Return Data Format
         return {
-            akreditasi: finalScore,
-            sinta_id: sintaId,
-            url_sinta: fullProfileUrl
+            issn: cleanIssn,
+            score: score, 
+            sintaId: sintaId.toString(),
+            garudaId: garudaId.toString()
         };
+
     } catch (error) {
-        console.error("Gagal sinkronisasi Sinta:", error.message);
-        throw error;
+        console.error('[SintaService Error]', error.message);
+        return null;
     }
-};
+}
 
 module.exports = { fetchSintaData };
