@@ -1,16 +1,14 @@
-/* --- LAYOUT UTAMA --- */
 .dashboard-layout {
     display: flex;
     height: 100vh;
-    background-color: #f4f6f9; /* Background abu-abu muda ala admin */
+    background-color: #f4f6f9; 
     font-family: 'Segoe UI', sans-serif;
     overflow: hidden;
 }
 
-/* --- SIDEBAR (KIRI) --- */
 .sidebar {
     width: 260px;
-    background-color: #1a1a1a; /* Hitam Elegan */
+    background-color: #1a1a1a;
     color: white;
     display: flex;
     flex-direction: column;
@@ -26,7 +24,7 @@
 
 .sidebar-header h2 {
     margin: 0;
-    color: #FF8A00; /* Primary Color */
+    color: #FF8A00;
     font-size: 1.5rem;
     font-weight: 800;
 }
@@ -41,7 +39,6 @@
     display: inline-block;
 }
 
-/* Menu Navigasi */
 .sidebar-menu {
     flex: 1;
     padding: 20px 0;
@@ -65,7 +62,7 @@
 .menu-item:hover {
     background-color: #333;
     color: white;
-    border-left: 4px solid #FF8A00; /* Indikator Oranye */
+    border-left: 4px solid #FF8A00; 
 }
 
 .menu-item.active {
@@ -78,7 +75,6 @@
     font-size: 1.2rem;
 }
 
-/* Footer Sidebar (Logout) */
 .sidebar-footer {
     padding: 20px;
     border-top: 1px solid #333;
@@ -103,15 +99,13 @@
     background: #e74c3c;
 }
 
-/* --- MAIN CONTENT (KANAN) --- */
 .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* Scrollable jika tabel panjang */
+    overflow-y: auto; 
 }
 
-/* Top Bar */
 .top-bar {
     background: white;
     padding: 15px 30px;
@@ -131,12 +125,10 @@
     color: #555;
 }
 
-/* Wrapper Tabel */
 .content-wrapper {
     padding: 30px;
 }
 
-/* --- TABEL STYLING (Penyesuaian untuk Layout Baru) --- */
 .jurnal-table {
     width: 100%;
     background: white;
@@ -144,11 +136,11 @@
     border-collapse: separate;
     border-spacing: 0;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    overflow: hidden; /* Biar radius kelihatan */
+    overflow: hidden; 
 }
 
 .jurnal-table thead {
-    background: #FF8A00; /* Primary Color */
+    background: #FF8A00; 
     color: white;
 }
 
@@ -167,10 +159,9 @@
 }
 
 .jurnal-table tbody tr:hover {
-    background-color: #fff9f0; /* Efek hover baris */
+    background-color: #fff9f0; 
 }
 
-/* Komponen Kecil */
 .jurnal-link { font-weight: bold; color: #000; text-decoration: none; display: block; }
 .jurnal-link:hover { color: #FF8A00; text-decoration: underline; }
 
