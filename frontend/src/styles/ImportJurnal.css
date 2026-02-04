@@ -1,129 +1,242 @@
+/* --- 1. LAYOUT UTAMA --- */
 .import-container {
-    padding: 30px;
-    max-width: 800px;
+    padding: 20px;
+    width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .import-card {
     background: white;
-    padding: 40px;
+    padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
+/* --- 2. AREA UPLOAD --- */
 .upload-area {
-    border: 2px dashed #ddd;
+    border: 2px dashed #cbd5e1;
     border-radius: 12px;
     padding: 40px;
     margin: 20px 0;
     cursor: pointer;
-    transition: all 0.3s;
-    background-color: #fafafa;
-    position: relative;
+    transition: all 0.3s ease;
+    background-color: #f8fafc;
+    text-align: center;
 }
 
 .upload-area:hover {
     border-color: #FF8A00;
-    background-color: #fff9f0;
+    background-color: #fffaf0;
 }
 
 .upload-area.active {
     border-color: #FF8A00;
     background-color: #fff5e6;
+    transform: scale(0.99);
 }
 
-.upload-icon {
-    font-size: 3rem;
-    color: #ccc;
-    margin-bottom: 15px;
-}
+.upload-icon { font-size: 3rem; margin-bottom: 10px; }
+.upload-text { font-size: 1rem; color: #64748b; }
+.upload-text b { color: #FF8A00; }
 
-.upload-text {
-    font-size: 1rem;
-    color: #666;
-}
-
-.upload-text b {
-    color: #FF8A00;
-}
-
-.file-preview {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f8f9fa;
-    padding: 15px;
+/* --- 3. HEADER FILE TERPILIH --- */
+.file-selected-area {
+    background: #fff;
+    border: 1px solid #cbd5e1;
     border-radius: 8px;
-    margin-top: 20px;
-    border: 1px solid #eee;
+    overflow: hidden;
+    margin-bottom: 20px;
 }
 
-.file-info {
+.file-header {
+    background-color: #f1f5f9;
+    padding: 12px 20px;
+    border-bottom: 1px solid #cbd5e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.file-name-badge {
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
-    gap: 15px;
-    font-weight: 500;
-    color: #333;
+    gap: 10px;
 }
 
-.file-icon {
-    font-size: 1.5rem;
+.row-count {
+    background: #10b981;
+    color: white;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 99px;
 }
 
-.btn-remove {
-    background: none;
-    border: none;
-    color: #e74c3c;
+.btn-remove-file {
+    background: white;
+    color: #ef4444;
+    border: 1px solid #fca5a5;
+    padding: 6px 12px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-remove-file:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* --- 4. PREVIEW TABLE (EXCEL STYLE FIX) --- */
+.preview-table-wrapper {
+    max-height: 500px; /* Tinggi maksimal jendela scroll */
+    overflow: auto;    /* Scrollbar otomatis */
+    position: relative;
+    background: #fff;
+    
+    /* Border Kiri & Atas Wrapper (Teknik Single Border) */
+    border-left: 1px solid #cbd5e1;
+    border-top: 1px solid #cbd5e1; 
+    /* Hapus border radius biar kotak kayak excel */
+    border-radius: 0; 
+}
+
+.preview-table {
+    width: 100%;
+    /* WAJIB: Separate biar sticky jalan, Spacing 0 biar border nyatu */
+    border-collapse: separate; 
+    border-spacing: 0; 
+    font-family: 'Consolas', 'Monaco', 'Segoe UI', sans-serif;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* --- HEADER CELL (STICKY TOP) --- */
+.preview-table th {
+    background-color: #e2e8f0; /* Warna Header Excel */
+    color: #1e293b;
+    padding: 10px 15px;
+    text-align: left;
+    font-weight: 700;
+    
+    /* STICKY */
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    
+    /* Border Kanan & Bawah Saja */
+    border-right: 1px solid #cbd5e1;
+    border-bottom: 1px solid #94a3b8; /* Border bawah header lebih gelap dikit */
+}
+
+/* --- ROW NUMBER (STICKY LEFT) --- */
+.row-number {
+    background-color: #f8fafc; /* Warna Kolom Nomor */
+    color: #64748b;
+    text-align: center !important;
+    font-weight: bold;
+    width: 45px;
+    min-width: 45px;
+    user-select: none;
+    
+    /* STICKY */
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    
+    /* Border Kanan & Bawah Saja */
+    border-right: 3px solid #cbd5e1 !important; /* Pemisah tebal */
+    border-bottom: 1px solid #cbd5e1;
+}
+
+/* --- CORNER HEADER (STICKY POJOK) --- */
+.preview-table thead th.row-number {
+    z-index: 30; /* Paling atas */
+    background-color: #cbd5e1;
+    border-bottom: 1px solid #94a3b8;
+    border-right: 3px solid #94a3b8;
+}
+
+/* --- DATA CELLS --- */
+.preview-table td {
+    padding: 8px 15px;
+    color: #334155;
+    background-color: #fff;
+    
+    /* Border Kanan & Bawah Saja */
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* --- HOVER EFFECTS --- */
+.preview-table tr:hover td {
+    background-color: #f0f9ff; /* Highlight biru baris */
+}
+
+/* Fix warna background row number pas dihover (tetap abu, jgn biru) */
+.preview-table tr:hover td.row-number {
+    background-color: #f1f5f9; 
+}
+
+/* --- 5. FOOTER & TOMBOL --- */
+.preview-footer {
+    padding: 10px;
+    background: #f8fafc;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-top: none; /* Gabung sama tabel */
 }
 
 .action-buttons-import {
     display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 30px;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
 }
 
 .btn-upload {
     background-color: #FF8A00;
     color: white;
-    padding: 12px 30px;
+    padding: 10px 24px;
     border-radius: 8px;
     border: none;
-    font-weight: bold;
-    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
     transition: all 0.2s;
 }
 
 .btn-upload:hover {
     background-color: #e67e00;
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 .btn-upload:disabled {
-    background-color: #ccc;
+    background-color: #cbd5e1;
     cursor: not-allowed;
     transform: none;
 }
 
 .btn-template {
     background-color: white;
-    color: #333;
-    padding: 12px 20px;
+    color: #475569;
+    padding: 10px 20px;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid #cbd5e1;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .btn-template:hover {
-    background-color: #f5f5f5;
-    border-color: #bbb;
+    background-color: #f8fafc;
+    border-color: #94a3b8;
 }
