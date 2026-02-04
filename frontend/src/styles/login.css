@@ -4,7 +4,6 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    /* Background Putih Bersih sesuai request */
     background-color: #FFFFFF; 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     padding: 20px;
@@ -15,7 +14,6 @@
     background: #FFFFFF;
     padding: 40px 35px;
     border-radius: 12px;
-    /* Karena background putih, kita butuh shadow & border biar kartu terlihat */
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); 
     border: 1px solid #f0f0f0;
     width: 100%;
@@ -23,20 +21,19 @@
     text-align: center;
     position: relative;
     overflow: hidden;
-    /* Aksen Primary Color di atas kartu */
     border-top: 6px solid #FF8A00; 
 }
 
 /* --- 3. TYPOGRAPHY --- */
 .login-card h2 {
     margin: 0 0 10px;
-    color: #000000; /* Text Utama */
+    color: #000000; 
     font-weight: 700;
     font-size: 1.8rem;
 }
 
 .login-card p {
-    color: #3A3A3A; /* Text Sekunder */
+    color: #3A3A3A; 
     font-size: 0.95rem;
     margin-bottom: 30px;
     line-height: 1.5;
@@ -55,38 +52,48 @@
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     font-size: 1rem;
-    color: #3A3A3A; /* Text Sekunder */
+    color: #3A3A3A; 
     background-color: #fafafa;
     transition: all 0.3s ease;
     box-sizing: border-box;
 }
 
 .login-card input:focus {
-    /* Border jadi warna Primary saat diklik */
     border-color: #FF8A00; 
     background-color: #fff;
     outline: none;
-    box-shadow: 0 0 0 4px rgba(255, 138, 0, 0.1); /* Glow Oranye transparan */
+    box-shadow: 0 0 0 4px rgba(255, 138, 0, 0.1); 
 }
 
-/* --- 5. TOMBOL (BUTTON) --- */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 45px; 
+}
+
 .login-card button {
     width: 100%;
     padding: 14px;
     margin-top: 15px;
-    background-color: #FF8A00; /* Primary Color */
-    color: #FFFFFF; /* Teks Putih biar kontras */
+    background-color: #FF8A00; 
+    color: #FFFFFF;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
     transition: background 0.3s, transform 0.2s;
-    box-shadow: 0 4px 10px rgba(255, 138, 0, 0.3); /* Shadow tombol oranye */
+    box-shadow: 0 4px 10px rgba(255, 138, 0, 0.3);
 }
 
 .login-card button:hover {
-    background-color: #e67e00; /* Warna sedikit lebih gelap saat hover */
+    background-color: #e67e00; 
     transform: translateY(-2px);
 }
 
@@ -94,7 +101,6 @@
     transform: translateY(0);
 }
 
-/* --- 6. PESAN ERROR / SUKSES --- */
 .message-box { 
     padding: 12px; 
     margin-bottom: 20px; 
@@ -117,15 +123,14 @@
     border: 1px solid #c3e6cb;
 }
 
-/* --- 7. SWITCH MODE (DAFTAR / LOGIN) --- */
 .switch-mode { 
     margin-top: 30px; 
     font-size: 0.9rem; 
-    color: #3A3A3A; /* Text Sekunder */
+    color: #3A3A3A;
 }
 
 .switch-mode span { 
-    color: #FF8A00; /* Primary Color */
+    color: #FF8A00; 
     cursor: pointer; 
     font-weight: 700; 
     margin-left: 5px;
@@ -138,32 +143,6 @@
     text-decoration: underline;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-    .login-container {
-        padding: 15px;
-        background-color: #ffffff; /* Pastikan tetap putih di HP */
-    }
-    .login-card {
-        box-shadow: none; /* Hilangkan shadow di layar kecil biar bersih */
-        border: none;
-        padding: 20px 0;
-    }
-}
-
-/* --- FITUR SHOW/HIDE PASSWORD (ICON SVG) --- */
-.password-wrapper {
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-}
-
-.password-wrapper input {
-    width: 100%;
-    padding-right: 45px; /* Kasih ruang lebih dikit biar icon gak mepet */
-}
-
 .toggle-password {
     position: absolute;
     right: 15px;
@@ -173,17 +152,33 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 10;
 }
 
-/* Style Khusus SVG Icon */
 .toggle-password svg {
-    width: 22px;  /* Ukuran Icon */
-    height: 22px;
-    fill: #999;   /* Warna Default Abu-abu */
-    transition: fill 0.3s ease;
+    width: 24px;
+    height: 24px;
+    color: #999; 
+    transition: color 0.3s ease;
 }
 
-/* Efek saat Icon di-Hover */
 .toggle-password:hover svg {
-    fill: #FF8A00; /* Berubah jadi Warna Primary (Oranye) */
+    color: #FF8A00; 
+}
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 15px;
+        background-color: #ffffff; 
+    }
+    .login-card {
+        box-shadow: none;
+        border: none;
+        padding: 20px 0;
+    }
 }
