@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import api from '../services/api'; 
-import '../styles/login.css'; 
+import '../styles/Login.css'; 
 
 const Register = ({ onSwitchToLogin }) => {
     const [formData, setFormData] = useState({ username: '', password: '' });

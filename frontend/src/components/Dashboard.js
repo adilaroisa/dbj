@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getJurnals, syncSinta, deleteJurnal, importExcel } from '../services/api';
-import '../styles/dashboard.css';
+import '../styles/Dashboard.css';
 
 const Dashboard = () => {
     const [jurnals, setJurnals] = useState([]);
