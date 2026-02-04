@@ -1,17 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom'; // Butuh ini buat logout
+import { useNavigate } from 'react-router-dom';
 import { getJurnals, syncSinta, deleteJurnal, importExcel } from '../services/api';
-import '../styles/dashboard.css'; // Pastikan CSS-nya diload
+import '../styles/dashboard.css';
 
 const Dashboard = () => {
     const [jurnals, setJurnals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
-    
+    const [username, setUsername] = useState('Admin'); 
     const fileInputRef = useRef(null);
     const navigate = useNavigate();
 
     useEffect(() => {
+        const storedUser = localStorage.getItem('username');
+        if (storedUser) {
+            setUsername(storedUser.charAt(0).toUpperCase() + storedUser.slice(1));
+        }
+
         fetchData();
     }, []);
 
@@ -49,7 +54,7 @@ const Dashboard = () => {
         if (!issn) return alert('ISSN kosong, tidak bisa sync!');
         try {
             const btn = document.getElementById(`sync-${id}`);
-            if(btn) btn.innerText = "⏳...";
+            if(btn) btn.innerText = "...";
             await syncSinta(id);
             await fetchData(); 
             alert('Sinkronisasi Selesai!');
@@ -64,16 +69,14 @@ const Dashboard = () => {
             fetchData();
         }
     };
-
-    // Fungsi Logout (Pindah ke sini karena Sidebar ada di sini)
     const handleLogout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('username'); 
         navigate('/login');
     };
 
     return (
         <div className="dashboard-layout">
-            {/* --- SIDEBAR ADMIN --- */}
             <aside className="sidebar">
                 <div className="sidebar-header">
                     <h2>Jurnal DIY</h2>
@@ -82,15 +85,14 @@ const Dashboard = () => {
                 
                 <nav className="sidebar-menu">
                     <a href="#" className="menu-item active">
-                        <span className="icon">📊</span> Dashboard
+                        <span className="icon"></span> Dashboard
                     </a>
                     <a href="/add-jurnal" className="menu-item">
-                        <span className="icon">📝</span> Input Manual
+                        <span className="icon"></span> Input Manual
                     </a>
                     <div className="menu-item" onClick={() => fileInputRef.current.click()}>
-                        <span className="icon">📂</span> Import Excel
+                        <span className="icon"></span> Import Excel
                     </div>
-                    {/* Input File Hidden */}
                     <input 
                         type="file" 
                         ref={fileInputRef} 
@@ -102,17 +104,16 @@ const Dashboard = () => {
 
                 <div className="sidebar-footer">
                     <button onClick={handleLogout} className="btn-logout-side">
-                        🚪 Logout
+                         Logout
                     </button>
                 </div>
             </aside>
 
-            {/* --- MAIN CONTENT (KANAN) --- */}
             <main className="main-content">
                 <header className="top-bar">
                     <h3>Data Jurnal Terdaftar</h3>
                     <div className="user-profile">
-                        <span>👋 Halo, Admin</span>
+                        <span> Halo, {username}</span>
                     </div>
                 </header>
 
@@ -144,7 +145,7 @@ const Dashboard = () => {
                                                 {jurnal.member_doi_rji && <span className="badge-rji">Member RJI</span>}
                                                 {jurnal.url_garuda && (
                                                     <a href={jurnal.url_garuda} target="_blank" rel="noreferrer" className="link-external-garuda">
-                                                        🦅 Garuda
+                                                         Garuda
                                                     </a>
                                                 )}
                                             </div>
@@ -154,7 +155,7 @@ const Dashboard = () => {
                                                 <div className="issn-box">
                                                     <span className="issn-code">{jurnal.issn}</span>
                                                     <a href={`https://portal.issn.org/resource/ISSN/${jurnal.issn}`} target="_blank" rel="noreferrer" className="link-validasi">
-                                                        ✅ Cek Validitas
+                                                         Cek Validitas
                                                     </a>
                                                 </div>
                                             ) : '-'}
@@ -165,14 +166,14 @@ const Dashboard = () => {
                                             </span>
                                             {jurnal.url_sinta && (
                                                 <a href={jurnal.url_sinta} target="_blank" rel="noreferrer" className="link-sinta-small">
-                                                    🔗 Sinta
+                                                     Sinta
                                                 </a>
                                             )}
                                         </td>
                                         <td>
                                             <div className="contact-info">
-                                                {jurnal.email && <div>📧 {jurnal.email}</div>}
-                                                {jurnal.kontak && <div>📱 {jurnal.kontak}</div>}
+                                                {jurnal.email && <div> {jurnal.email}</div>}
+                                                {jurnal.kontak && <div> {jurnal.kontak}</div>}
                                             </div>
                                         </td>
                                         <td>

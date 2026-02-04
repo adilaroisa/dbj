@@ -15,10 +15,15 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
 
         try {
             const res = await api.post('/auth/login', formData);
+            
             localStorage.setItem('token', res.data.token);
+            
+            if (res.data.user && res.data.user.username) {
+                localStorage.setItem('username', res.data.user.username);
+            }
             onLogin(); 
         } catch (err) {
-            const errMsg = err.response?.data?.message || 'Gagal Login';
+            const errMsg = err.response?.data?.message || 'Gagal Login. Periksa username/password.';
             setMessage({ type: 'error', text: errMsg });
         } finally {
             setLoading(false);
@@ -57,7 +62,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
                         <span 
                             className="toggle-password" 
                             onClick={() => setShowPassword(!showPassword)}
-                            title={showPassword ? "Sembunyikan" : "Lihat"}
+                            title={showPassword ? "Sembunyikan Password" : "Lihat Password"}
                         >
                             {showPassword ? (
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

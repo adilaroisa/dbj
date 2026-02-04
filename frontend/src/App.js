@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import JurnalTable from './components/dashboard';
 import Login from './components/login'; 
 import Register from './components/register'; 
+import Dashboard from './components/dashboard'; 
 import './App.css';
 
 function App() {
@@ -10,88 +10,62 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Efek samping: Update Judul Tab Browser sesuai Halaman
+  // Update Judul Tab Browser
   useEffect(() => {
     if (location.pathname === '/login') document.title = 'Login - Database Jurnal DIY';
     else if (location.pathname === '/register') document.title = 'Daftar - Database Jurnal DIY';
-    else if (location.pathname === '/dashboard') document.title = 'Dashboard - Database Jurnal DIY';
+    else if (location.pathname === '/dashboard') document.title = 'Dashboard Admin';
   }, [location]);
 
-  // Fungsi Login Sukses
   const handleLoginSuccess = () => {
     setToken(localStorage.getItem('token'));
-    navigate('/dashboard'); // Pindah ke URL /dashboard
+    navigate('/dashboard');
   };
 
-  // Fungsi Logout
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    navigate('/login'); // Pindah ke URL /login
-  };
-
-  // Komponen Pengaman (Private Route)
-  // Kalau belum login tapi maksa buka /dashboard, tendang ke /login
+  // Private Route Wrapper
   const PrivateRoute = ({ children }) => {
     return token ? children : <Navigate to="/login" />;
   };
 
   return (
     <div className="App">
-      {/* Header hanya muncul jika SUDAH LOGIN (ada di Dashboard) */}
-      {token && location.pathname === '/dashboard' && (
-        <header className="App-header">
-          <div className="header-content">
-              <h1>Database Jurnal D.I. Yogyakarta</h1>
-              <p className="subtitle">Admin Dashboard</p>
-          </div>
-          <button onClick={handleLogout} className="btn-logout">Logout</button>
-        </header>
-      )}
+      {/* PENTING: Header lama SUDAH DIHAPUS di sini.
+         Sekarang layout ditangani sepenuhnya oleh masing-masing halaman (Dashboard/Login).
+      */}
+      
+      <Routes>
+        {/* Rute Login */}
+        <Route 
+          path="/login" 
+          element={!token ? <Login onLogin={handleLoginSuccess} onSwitchToRegister={() => navigate('/register')} /> : <Navigate to="/dashboard" />} 
+        />
 
-      <main className="main-content">
-        <Routes>
-          <Route 
-            path="/login" 
-            element={
-              !token ? (
-                <Login 
-                  onLogin={handleLoginSuccess} 
-                  onSwitchToRegister={() => navigate('/register')} 
-                />
-              ) : (
-                <Navigate to="/dashboard" /> // Kalau udah login, jangan kasih buka login lagi
-              )
-            } 
-          />
+        {/* Rute Register */}
+        <Route 
+          path="/register" 
+          element={!token ? <Register onSwitchToLogin={() => navigate('/login')} /> : <Navigate to="/dashboard" />} 
+        />
 
-          {/* 2. Jalur Register */}
-          <Route 
-            path="/register" 
-            element={
-              !token ? (
-                <Register 
-                  onSwitchToLogin={() => navigate('/login')} 
-                />
-              ) : (
-                <Navigate to="/dashboard" />
-              )
-            } 
-          />
-          <Route 
-            path="/dashboard" 
-            element={
-              <PrivateRoute>
-                <JurnalTable isAdmin={true} />
-              </PrivateRoute>
-            } 
-          />
-          <Route 
-            path="/" 
-            element={<Navigate to={token ? "/dashboard" : "/login"} />} 
-          />
-        </Routes>
-      </main>
+        {/* Rute Dashboard */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          } 
+        />
+
+        {/* Input Manual (Disiapkan) */}
+        {/* <Route 
+          path="/add-jurnal" 
+          element={<PrivateRoute><AddJurnal /></PrivateRoute>} 
+        /> 
+        */}
+
+        {/* Default Redirect */}
+        <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
+      </Routes>
     </div>
   );
 }
