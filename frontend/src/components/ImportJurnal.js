@@ -10,14 +10,12 @@ const ImportJurnal = () => {
     const [loading, setLoading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
 
-    // --- LOGOUT LOGIC ---
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('username');
         navigate('/login');
     };
 
-    // --- HANDLE DRAG & DROP ---
     const handleDrag = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -44,7 +42,6 @@ const ImportJurnal = () => {
     };
 
     const validateAndSetFile = (selectedFile) => {
-        // Cek ekstensi file
         const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
         if (validTypes.includes(selectedFile.type) || selectedFile.name.endsWith('.xlsx') || selectedFile.name.endsWith('.xls')) {
             setFile(selectedFile);
@@ -53,7 +50,6 @@ const ImportJurnal = () => {
         }
     };
 
-    // --- UPLOAD PROCESS ---
     const handleUpload = async () => {
         if (!file) return;
 
@@ -63,8 +59,8 @@ const ImportJurnal = () => {
         setLoading(true);
         try {
             const res = await importExcel(formData);
-            alert(res.data.message); // Tampilkan pesan sukses dari backend
-            navigate('/dashboard'); // Kembali ke dashboard setelah sukses
+            alert(res.data.message); 
+            navigate('/dashboard'); 
         } catch (err) {
             alert('Gagal Import: ' + (err.response?.data?.message || err.message));
         } finally {
@@ -72,9 +68,7 @@ const ImportJurnal = () => {
         }
     };
 
-    // --- DOWNLOAD TEMPLATE FUNCTION ---
     const downloadTemplate = () => {
-        // Membuat dummy excel file (CSV sederhana) untuk template
         const csvContent = "data:text/csv;charset=utf-8,Nama Jurnal,Institusi,ISSN,Email,WA,Website\nContoh Jurnal Tekno,Univ A,12345678,email@contoh.com,08123456,https://jurnal.com";
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
@@ -87,7 +81,6 @@ const ImportJurnal = () => {
 
     return (
         <div className="dashboard-layout">
-            {/* --- SIDEBAR (Sama seperti Dashboard) --- */}
             <aside className="sidebar">
                 <div className="sidebar-header">
                     <h2>Jurnal DIY</h2>
@@ -96,19 +89,19 @@ const ImportJurnal = () => {
                 
                 <nav className="sidebar-menu">
                     <a href="/dashboard" className="menu-item">
-                        <span className="icon">📊</span> Dashboard
+                        <span className="icon"></span> Dashboard
                     </a>
                     <a href="/add-jurnal" className="menu-item">
-                        <span className="icon">📝</span> Input Manual
+                        <span className="icon"></span> Input Manual
                     </a>
                     <a href="#" className="menu-item active">
-                        <span className="icon">📂</span> Import Excel
+                        <span className="icon"></span> Import Excel
                     </a>
                 </nav>
 
                 <div className="sidebar-footer">
                     <button onClick={handleLogout} className="btn-logout-side">
-                        🚪 Logout
+                         Logout
                     </button>
                 </div>
             </aside>
@@ -146,7 +139,7 @@ const ImportJurnal = () => {
                                     accept=".xlsx, .xls"
                                     onChange={handleChange}
                                 />
-                                <div className="upload-icon">📂</div>
+                                <div className="upload-icon"></div>
                                 <div className="upload-text">
                                     {file ? (
                                         <span style={{color:'#27ae60', fontWeight:'bold'}}>File Siap: {file.name}</span>
@@ -159,7 +152,7 @@ const ImportJurnal = () => {
                             {/* TOMBOL AKSI */}
                             <div className="action-buttons-import">
                                 <button onClick={downloadTemplate} className="btn-template">
-                                    📥 Download Template
+                                     Download Template
                                 </button>
                                 
                                 <button 
@@ -167,7 +160,7 @@ const ImportJurnal = () => {
                                     className="btn-upload" 
                                     disabled={!file || loading}
                                 >
-                                    {loading ? 'Mengupload...' : '🚀 Mulai Import'}
+                                    {loading ? 'Mengupload...' : ' Mulai Import'}
                                 </button>
                             </div>
 

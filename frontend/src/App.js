@@ -8,6 +8,7 @@ import './App.css';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
+  
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,8 +20,16 @@ function App() {
   }, [location]);
 
   const handleLoginSuccess = () => {
-    setToken(localStorage.getItem('token'));
+    const newToken = localStorage.getItem('token');
+    setToken(newToken); 
     navigate('/dashboard');
+  };
+
+  const handleLogout = () => {
+    setToken(null); 
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    navigate('/login');
   };
 
   const PrivateRoute = ({ children }) => {
@@ -33,11 +42,23 @@ function App() {
         <Route path="/login" element={!token ? <Login onLogin={handleLoginSuccess} onSwitchToRegister={() => navigate('/register')} /> : <Navigate to="/dashboard" />} />
         <Route path="/register" element={!token ? <Register onSwitchToLogin={() => navigate('/login')} /> : <Navigate to="/dashboard" />} />
 
-        {/* HALAMAN UTAMA */}
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute>
+              <Dashboard onLogout={handleLogout} />
+            </PrivateRoute>
+          } 
+        />
         
-        {/* HALAMAN IMPORT BARU */}
-        <Route path="/import-jurnal" element={<PrivateRoute><ImportJurnal /></PrivateRoute>} />
+        <Route 
+          path="/import-jurnal" 
+          element={
+            <PrivateRoute>
+              <ImportJurnal onLogout={handleLogout} />
+            </PrivateRoute>
+          } 
+        />
 
         <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
       </Routes>

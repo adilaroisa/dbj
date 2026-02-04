@@ -1,22 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getJurnals, syncSinta, deleteJurnal, importExcel } from '../services/api';
-import '../styles/Dashboard.css';
+import { getJurnals, syncSinta, deleteJurnal } from '../services/api';
+import '../styles/Dashboard.css'; 
 
-const Dashboard = () => {
+const Dashboard = ({ onLogout }) => {
     const [jurnals, setJurnals] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [uploading, setUploading] = useState(false);
     const [username, setUsername] = useState('Admin'); 
-    const fileInputRef = useRef(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const storedUser = localStorage.getItem('username');
         if (storedUser) {
             setUsername(storedUser.charAt(0).toUpperCase() + storedUser.slice(1));
         }
-
         fetchData();
     }, []);
 
@@ -32,29 +27,11 @@ const Dashboard = () => {
         }
     };
 
-    const handleFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const formData = new FormData();
-        formData.append('file', file);
-        try {
-            setUploading(true);
-            const res = await importExcel(formData);
-            alert(res.data.message);
-            fetchData(); 
-        } catch (err) {
-            alert('Gagal Import: ' + (err.response?.data?.message || err.message));
-        } finally {
-            setUploading(false);
-            e.target.value = null; 
-        }
-    };
-
     const handleSync = async (id, issn) => {
         if (!issn) return alert('ISSN kosong, tidak bisa sync!');
         try {
             const btn = document.getElementById(`sync-${id}`);
-            if(btn) btn.innerText = "...";
+            if(btn) btn.innerText = "⏳...";
             await syncSinta(id);
             await fetchData(); 
             alert('Sinkronisasi Selesai!');
@@ -69,10 +46,10 @@ const Dashboard = () => {
             fetchData();
         }
     };
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username'); 
-        navigate('/login');
+    const handleLogoutClick = () => {
+        if (onLogout) {
+            onLogout();
+        }
     };
 
     return (
@@ -90,20 +67,13 @@ const Dashboard = () => {
                     <a href="/add-jurnal" className="menu-item">
                         <span className="icon"></span> Input Manual
                     </a>
-                    <div className="menu-item" onClick={() => fileInputRef.current.click()}>
+                    <a href="/import-jurnal" className="menu-item">
                         <span className="icon"></span> Import Excel
-                    </div>
-                    <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        style={{ display: 'none' }} 
-                        accept=".xlsx, .xls"
-                        onChange={handleFileChange}
-                    />
+                    </a>
                 </nav>
 
                 <div className="sidebar-footer">
-                    <button onClick={handleLogout} className="btn-logout-side">
+                    <button onClick={handleLogoutClick} className="btn-logout-side">
                          Logout
                     </button>
                 </div>
