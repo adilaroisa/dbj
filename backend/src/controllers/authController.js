@@ -20,9 +20,9 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { username, password } = req.body; 
+        const user = await User.findOne({ where: { username } }); 
         
-        const user = await User.findOne({ where: { email } });
         if (!user) return res.status(404).json({ message: 'User tidak ditemukan' });
 
         const isMatch = await bcrypt.compare(password, user.password);

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { getJurnals, syncSinta, deleteJurnal } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { getJurnals, syncSinta, deleteJurnal } from '../services/apiClient';
+import Swal from 'sweetalert2'; 
 import '../styles/Dashboard.css';
 
 const Dashboard = ({ onLogout }) => {
@@ -22,15 +23,29 @@ const Dashboard = ({ onLogout }) => {
         try {
             setLoading(true);
             const response = await getJurnals();
-            setJurnals(Array.isArray(response.data) ? response.data : []);
+            
+            let dataArray = [];
+            if (Array.isArray(response.data)) {
+                dataArray = response.data;
+            } else if (response.data && Array.isArray(response.data.data)) {
+                dataArray = response.data.data;
+            }
+
+            setJurnals(dataArray);
+
         } catch (err) {
-            console.error(err);
+            console.error("Gagal mengambil data:", err);
+            // Alert menggunakan SweetAlert
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Memuat Data',
+                text: 'Periksa koneksi ke server backend.',
+            });
         } finally {
             setLoading(false);
         }
     };
 
-    // LOGIKA FILTER SEARCH
     const filteredJurnals = jurnals.filter((jurnal) => {
         if (!searchTerm) return true;
         const lowerSearch = searchTerm.toLowerCase();
@@ -43,27 +58,93 @@ const Dashboard = ({ onLogout }) => {
     });
 
     const handleSync = async (id, issn) => {
-        if (!issn) return alert('ISSN kosong, tidak bisa sync!');
+        if (!issn) {
+            Swal.fire('Peringatan', 'ISSN kosong, tidak bisa sinkronisasi!', 'warning');
+            return;
+        }
         try {
             const btn = document.getElementById(`sync-${id}`);
-            if(btn) btn.innerText = "";
-            await syncSinta(id);
+            if(btn) btn.innerText = "⏳";
+            
+            const res = await syncSinta(id);
+            
             await fetchData(); 
-            alert('Sinkronisasi Selesai!');
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Sinkronisasi Selesai',
+                text: res.data?.message || 'Data berhasil diperbarui dari Sinta.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
         } catch (err) {
-            alert('Gagal Sync: ' + (err.response?.data?.message || err.message));
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Sync',
+                text: err.response?.data?.message || err.message,
+            });
         }
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Yakin hapus jurnal ini?')) {
-            await deleteJurnal(id);
-            fetchData();
+    // --- FUNGSI DELETE MENGGUNAKAN SWEETALERT2 ---
+    const handleDelete = async (id, namaJurnal) => {
+        // Tampilkan popup konfirmasi yang elegan
+        const result = await Swal.fire({
+            title: 'Hapus Jurnal?',
+            html: `Kamu yakin ingin menghapus data <b>${namaJurnal}</b>?<br/>Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true // Tombol batal di kiri (lebih aman)
+        });
+
+        // Jika user klik "Ya, Hapus!"
+        if (result.isConfirmed) {
+            try {
+                await deleteJurnal(id);
+                await fetchData(); // Refresh data
+                
+                // Alert Sukses
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Terhapus!',
+                    text: 'Data jurnal telah dihapus.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } catch (err) {
+                console.error("Delete Error:", err);
+                
+                // Alert Gagal (Menampilkan detail error 400 dll)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Menghapus',
+                    text: err.response?.data?.message || 'Terjadi kesalahan pada server.',
+                });
+            }
         }
     };
 
     const handleLogoutClick = () => {
-        if (onLogout) onLogout();
+        // Konfirmasi Logout juga pakai SweetAlert
+        Swal.fire({
+            title: 'Keluar dari Sistem?',
+            text: "Sesi kamu akan diakhiri.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#FF8A00',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Ya, Logout',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (onLogout) onLogout();
+            }
+        });
     };
 
     return (
@@ -76,19 +157,19 @@ const Dashboard = ({ onLogout }) => {
                 
                 <nav className="sidebar-menu">
                     <a href="#" className="menu-item active">
-                        <span className="icon"></span> Dashboard
+                        <span className="icon">📊</span> Dashboard
                     </a>
                     <a href="/add-jurnal" className="menu-item">
-                        <span className="icon"></span> Input Manual
+                        <span className="icon">📝</span> Input Manual
                     </a>
                     <a href="/import-jurnal" className="menu-item">
-                        <span className="icon"></span> Import Excel
+                        <span className="icon">📂</span> Import Excel
                     </a>
                 </nav>
 
                 <div className="sidebar-footer">
                     <button onClick={handleLogoutClick} className="btn-logout-side">
-                         Logout
+                        🚪 Logout
                     </button>
                 </div>
             </aside>
@@ -100,7 +181,6 @@ const Dashboard = ({ onLogout }) => {
                         <p>Total: {filteredJurnals.length} Jurnal</p>
                     </div>
                     
-                    {/* SEARCH BAR BARU */}
                     <div className="search-container">
                         <input 
                             type="text" 
@@ -182,7 +262,9 @@ const Dashboard = ({ onLogout }) => {
                                         <td>
                                             <div className="action-buttons">
                                                 <button id={`sync-${jurnal.id}`} onClick={() => handleSync(jurnal.id, jurnal.issn)} className="btn-sync" title="Sync">🔄</button>
-                                                <button onClick={() => handleDelete(jurnal.id)} className="btn-delete" title="Hapus">🗑️</button>
+                                                
+                                                {/* PERUBAHAN DI SINI: Kita juga mengirimkan nama jurnal untuk ditampilkan di alert */}
+                                                <button onClick={() => handleDelete(jurnal.id, jurnal.nama)} className="btn-delete" title="Hapus">🗑️</button>
                                             </div>
                                         </td>
                                     </tr>

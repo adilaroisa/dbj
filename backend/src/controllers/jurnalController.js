@@ -12,8 +12,11 @@ const getAllJurnals = async (req, res) => {
                 ['nama', 'ASC']
             ] 
         });
-        res.json(jurnals);
+        
+        res.status(200).json(jurnals); 
+        
     } catch (err) {
+        console.error("Error Get Jurnals:", err); // Tambahkan log untuk debugging
         res.status(500).json({ message: err.message });
     }
 };
@@ -41,10 +44,23 @@ const updateJurnal = async (req, res) => {
 // --- DELETE ---
 const deleteJurnal = async (req, res) => {
     try {
-        await Jurnal.destroy({ where: { id: req.params.id } });
-        res.json({ message: 'Berhasil dihapus' });
+        const { id } = req.params;
+        
+        // Pastikan ID ada
+        if (!id) {
+            return res.status(400).json({ message: "ID Jurnal tidak valid." });
+        }
+
+        const deleted = await Jurnal.destroy({ where: { id: id } });
+        
+        if (deleted === 0) {
+            return res.status(404).json({ message: "Jurnal tidak ditemukan di database." });
+        }
+        
+        res.status(200).json({ message: 'Data jurnal berhasil dihapus' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("Error Delete:", err);
+        res.status(500).json({ message: "Gagal menghapus data: " + err.message });
     }
 };
 

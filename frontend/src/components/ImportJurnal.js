@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx'; 
-import { importExcel } from '../services/api';
+import { importExcel } from '../services/apiClient';
 import '../styles/Dashboard.css'; 
 import '../styles/ImportJurnal.css'; 
 
