@@ -246,7 +246,7 @@ const ImportJurnal = ({ onLogout }) => {
 
                             <div className="action-buttons-import">
                                 <button onClick={downloadTemplate} className="btn-template">
-                                    📥 Download Template
+                                     Download Template
                                 </button>
                                 
                                 <button 
@@ -254,7 +254,7 @@ const ImportJurnal = ({ onLogout }) => {
                                     className="btn-upload" 
                                     disabled={!file || loading || previewData.length === 0}
                                 >
-                                    {loading ? 'Mengupload...' : '🚀 Upload ke Database'}
+                                    {loading ? 'Mengupload...' : ' Upload ke Database'}
                                 </button>
                             </div>
 
