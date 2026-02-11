@@ -9,7 +9,7 @@ const fs = require('fs');
 
 const upload = multer({ dest: 'uploads/' });
 
-// --- 1. IMPORT EXCEL (Sesuai Flowchart: Upload & Ekstrak) ---
+// --- 1. IMPORT EXCEL ---
 router.post('/import', auth, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: 'File Excel wajib diupload' });
@@ -21,7 +21,6 @@ router.post('/import', auth, upload.single('file'), async (req, res) => {
         let successCount = 0;
 
         for (const row of data) {
-            // Mapping Kolom Excel -> Database
             const nama = row['Nama Jurnal'] || row['Nama'] || 'Tanpa Nama';
             const penerbit = row['Institusi'] || row['Penerbit'] || '-';
             const issn = row['ISSN'] ? String(row['ISSN']).replace(/-/g, '') : null;
@@ -30,7 +29,7 @@ router.post('/import', auth, upload.single('file'), async (req, res) => {
             const url = row['Website'] || row['URL'] || null;
             const member_doi_rji = row['Member RJI'] ? true : false;
 
-            // Cek Duplikasi (Berdasarkan ISSN atau Nama)
+            // Cek Duplikasi (Prioritas ISSN, lalu Nama)
             const existing = await Jurnal.findOne({ 
                 where: issn ? { issn } : { nama } 
             });
@@ -52,7 +51,7 @@ router.post('/import', auth, upload.single('file'), async (req, res) => {
     }
 });
 
-// --- 2. SYNC SINTA (Fitur Utama: Validasi & Sinkronisasi) ---
+// --- 2. SYNC SINTA ---
 router.patch('/:id/sync-sinta', auth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -62,26 +61,20 @@ router.patch('/:id/sync-sinta', auth, async (req, res) => {
             return res.status(400).json({ message: 'ISSN kosong, silakan input manual terlebih dahulu.' });
         }
 
-        // Panggil Service Sinta
         const sintaData = await fetchSintaData(jurnal.issn);
 
         if (sintaData) {
-            // Update Data Sesuai Transkrip & Flowchart
-            jurnal.akreditasi = sintaData.score; // S1-S6
+            jurnal.akreditasi = sintaData.score;
             jurnal.sinta_id = sintaData.sintaId;
             jurnal.url_sinta = `https://sinta.kemdiktisaintek.go.id/journals/profile/${sintaData.sintaId}`;
-            
-            // Tambahan: Update URL Garuda (Sesuai permintaan flowchart)
             jurnal.url_garuda = `https://garuda.kemdikbud.go.id/journal/view/${sintaData.garudaId}`;
             
             await jurnal.save();
-
-            return res.json({ message: 'Sync Sukses! Data Sinta & Garuda terupdate.', data: sintaData });
+            return res.json({ message: 'Sync Sukses!', data: sintaData });
         } else {
-            // Jika tidak ditemukan di Sinta
             jurnal.akreditasi = "Belum Terakreditasi";
             await jurnal.save();
-            return res.status(404).json({ message: 'Data tidak ditemukan di Sinta (ISSN mungkin salah/belum terdaftar).' });
+            return res.status(404).json({ message: 'Data tidak ditemukan di Sinta.' });
         }
 
     } catch (err) {
@@ -89,11 +82,18 @@ router.patch('/:id/sync-sinta', auth, async (req, res) => {
     }
 });
 
-// --- CRUD STANDAR ---
+// --- 3. GET DATA (PENGURUTAN DIPERBAIKI) ---
 router.get('/', async (req, res) => {
     try {
-        // Urutkan yang terbaru di atas
-        const jurnals = await Jurnal.findAll({ order: [['updatedAt', 'DESC']] });
+        // PERUBAHAN DI SINI:
+        // Urutkan berdasarkan 'penerbit' (Institusi) A-Z, lalu 'nama' jurnal A-Z.
+        // Ini membuat jurnal dari kampus yang sama akan menempel jadi satu grup.
+        const jurnals = await Jurnal.findAll({ 
+            order: [
+                ['penerbit', 'ASC'], 
+                ['nama', 'ASC']
+            ] 
+        });
         res.json(jurnals);
     } catch (err) {
         res.status(500).json({ message: err.message });

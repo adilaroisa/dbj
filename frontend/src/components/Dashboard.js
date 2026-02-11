@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getJurnals, syncSinta, deleteJurnal } from '../services/api';
-import '../styles/Dashboard.css'; 
+import '../styles/dashboard.css';
 
 const Dashboard = ({ onLogout }) => {
     const [jurnals, setJurnals] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [username, setUsername] = useState('Admin'); 
+    const [username, setUsername] = useState('Admin');
+    
+    // STATE SEARCH
+    const [searchTerm, setSearchTerm] = useState(''); 
 
     useEffect(() => {
         const storedUser = localStorage.getItem('username');
@@ -27,11 +30,23 @@ const Dashboard = ({ onLogout }) => {
         }
     };
 
+    // LOGIKA FILTER SEARCH
+    const filteredJurnals = jurnals.filter((jurnal) => {
+        if (!searchTerm) return true;
+        const lowerSearch = searchTerm.toLowerCase();
+        
+        return (
+            jurnal.nama?.toLowerCase().includes(lowerSearch) ||
+            jurnal.penerbit?.toLowerCase().includes(lowerSearch) ||
+            jurnal.issn?.includes(lowerSearch)
+        );
+    });
+
     const handleSync = async (id, issn) => {
         if (!issn) return alert('ISSN kosong, tidak bisa sync!');
         try {
             const btn = document.getElementById(`sync-${id}`);
-            if(btn) btn.innerText = "⏳...";
+            if(btn) btn.innerText = "⏳";
             await syncSinta(id);
             await fetchData(); 
             alert('Sinkronisasi Selesai!');
@@ -46,10 +61,9 @@ const Dashboard = ({ onLogout }) => {
             fetchData();
         }
     };
+
     const handleLogoutClick = () => {
-        if (onLogout) {
-            onLogout();
-        }
+        if (onLogout) onLogout();
     };
 
     return (
@@ -62,28 +76,43 @@ const Dashboard = ({ onLogout }) => {
                 
                 <nav className="sidebar-menu">
                     <a href="#" className="menu-item active">
-                        <span className="icon"></span> Dashboard
+                        <span className="icon">📊</span> Dashboard
                     </a>
                     <a href="/add-jurnal" className="menu-item">
-                        <span className="icon"></span> Input Manual
+                        <span className="icon">📝</span> Input Manual
                     </a>
                     <a href="/import-jurnal" className="menu-item">
-                        <span className="icon"></span> Import Excel
+                        <span className="icon">📂</span> Import Excel
                     </a>
                 </nav>
 
                 <div className="sidebar-footer">
                     <button onClick={handleLogoutClick} className="btn-logout-side">
-                         Logout
+                        🚪 Logout
                     </button>
                 </div>
             </aside>
 
             <main className="main-content">
                 <header className="top-bar">
-                    <h3>Data Jurnal Terdaftar</h3>
+                    <div className="top-bar-left">
+                        <h3>Data Jurnal Terdaftar</h3>
+                        <p>Total: {filteredJurnals.length} Jurnal</p>
+                    </div>
+                    
+                    {/* SEARCH BAR BARU */}
+                    <div className="search-container">
+                        <input 
+                            type="text" 
+                            placeholder="🔍 Cari Jurnal, Kampus, atau ISSN..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="search-input"
+                        />
+                    </div>
+
                     <div className="user-profile">
-                        <span> Halo, {username}</span>
+                        <span>👋 Halo, {username}</span>
                     </div>
                 </header>
 
@@ -101,9 +130,9 @@ const Dashboard = ({ onLogout }) => {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="6" className="loading-overlay">Memuat data...</td></tr>
-                            ) : jurnals.length > 0 ? (
-                                jurnals.map((jurnal, index) => (
+                                <tr><td colSpan="6" className="loading-overlay">Memuat database...</td></tr>
+                            ) : filteredJurnals.length > 0 ? (
+                                filteredJurnals.map((jurnal, index) => (
                                     <tr key={jurnal.id}>
                                         <td>{index + 1}</td>
                                         <td>
@@ -111,11 +140,15 @@ const Dashboard = ({ onLogout }) => {
                                                 <a href={jurnal.url || '#'} target="_blank" rel="noreferrer" className="jurnal-link">
                                                     {jurnal.nama}
                                                 </a>
-                                                <small>{jurnal.penerbit || '-'}</small>
+                                                <div className="institusi-badge">
+                                                    🏫 {jurnal.penerbit || 'Umum / Lainnya'}
+                                                </div>
+                                                
                                                 {jurnal.member_doi_rji && <span className="badge-rji">Member RJI</span>}
+                                                
                                                 {jurnal.url_garuda && (
                                                     <a href={jurnal.url_garuda} target="_blank" rel="noreferrer" className="link-external-garuda">
-                                                         Garuda
+                                                        🦅 Garuda
                                                     </a>
                                                 )}
                                             </div>
@@ -125,7 +158,7 @@ const Dashboard = ({ onLogout }) => {
                                                 <div className="issn-box">
                                                     <span className="issn-code">{jurnal.issn}</span>
                                                     <a href={`https://portal.issn.org/resource/ISSN/${jurnal.issn}`} target="_blank" rel="noreferrer" className="link-validasi">
-                                                         Cek Validitas
+                                                        ✅ Cek Validitas
                                                     </a>
                                                 </div>
                                             ) : '-'}
@@ -136,14 +169,14 @@ const Dashboard = ({ onLogout }) => {
                                             </span>
                                             {jurnal.url_sinta && (
                                                 <a href={jurnal.url_sinta} target="_blank" rel="noreferrer" className="link-sinta-small">
-                                                     Sinta
+                                                    🔗 Sinta
                                                 </a>
                                             )}
                                         </td>
                                         <td>
                                             <div className="contact-info">
-                                                {jurnal.email && <div> {jurnal.email}</div>}
-                                                {jurnal.kontak && <div> {jurnal.kontak}</div>}
+                                                {jurnal.email && <div>📧 {jurnal.email}</div>}
+                                                {jurnal.kontak && <div>📱 {jurnal.kontak}</div>}
                                             </div>
                                         </td>
                                         <td>
@@ -155,7 +188,11 @@ const Dashboard = ({ onLogout }) => {
                                     </tr>
                                 ))
                             ) : (
-                                <tr><td colSpan="6" align="center">Data kosong. Silakan import atau input manual.</td></tr>
+                                <tr>
+                                    <td colSpan="6" align="center" style={{padding: '40px', color: '#888'}}>
+                                        {searchTerm ? 'Pencarian tidak ditemukan 🔍' : 'Data kosong.'}
+                                    </td>
+                                </tr>
                             )}
                         </tbody>
                     </table>
