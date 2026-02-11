@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getJurnals, syncSinta, deleteJurnal, updateJurnal } from '../services/apiClient';
 import Swal from 'sweetalert2';
 import Sidebar from '../components/Sidebar';
-import '../styles/Dashboard.css'; // Pastikan case-nya sesuai nama file css kamu
+import '../styles/Dashboard.css';
 
 const Dashboard = ({ onLogout }) => {
     const [jurnals, setJurnals] = useState([]);
@@ -10,7 +10,7 @@ const Dashboard = ({ onLogout }) => {
     const [username, setUsername] = useState('Admin');
     const [searchTerm, setSearchTerm] = useState(''); 
 
-    // STATE UNTUK EDIT TAMPILAN (BUKAN MODAL)
+    // STATE UNTUK EDIT TAMPILAN (BUKAN MODAL/POP-UP)
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState(null);
     const [isFormDirty, setIsFormDirty] = useState(false); 
@@ -47,13 +47,16 @@ const Dashboard = ({ onLogout }) => {
     const handleSync = async (id, issn) => {
         if (!issn) return Swal.fire('Peringatan', 'ISSN kosong!', 'warning');
         try {
-            document.getElementById(`sync-${id}`).innerText = "⏳";
+            const btn = document.getElementById(`sync-${id}`);
+            if (btn) btn.innerText = "⏳";
+            
             const res = await syncSinta(id);
             await fetchData(); 
             Swal.fire({ icon: 'success', title: 'Sync Selesai', text: res.data?.message, timer: 2000, showConfirmButton: false });
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Gagal Sync', text: err.response?.data?.message || err.message });
-            document.getElementById(`sync-${id}`).innerText = "🔄";
+            const btn = document.getElementById(`sync-${id}`);
+            if (btn) btn.innerText = "🔄";
         }
     };
 
@@ -74,25 +77,23 @@ const Dashboard = ({ onLogout }) => {
         }
     };
 
-    // --- FUNGSI KLIK EDIT MODE (Tanpa Pop-Up) ---
+    // --- FUNGSI EDIT IN-PLACE ---
     const handleEditClick = (jurnal) => {
         setEditData(jurnal); 
-        setIsEditing(true); // Ganti tampilan ke form
+        setIsEditing(true); 
         setIsFormDirty(false); 
     };
 
-    // --- FUNGSI MENDETEKSI KETIKAN DI FORM ---
     const handleEditChange = (e) => {
         const { name, value } = e.target;
         setEditData({ ...editData, [name]: name === 'member_doi_rji' ? value === 'true' : value });
-        setIsFormDirty(true); // Menandakan bahwa ada data yang diubah
+        setIsFormDirty(true); 
     };
 
-    // --- FUNGSI ALERT KONFIRMASI SAAT KLIK SIMPAN ---
+    // --- FUNGSI KLIK SIMPAN (Dengan Alert Konfirmasi) ---
     const handleEditSubmit = async (e) => {
         e.preventDefault();
 
-        // 1. Jika form belum diapa-apain, gak usah konfirmasi, langsung kembali
         if (!isFormDirty) {
             Swal.fire({ 
                 icon: 'info', title: 'Tidak Ada Perubahan', 
@@ -102,19 +103,17 @@ const Dashboard = ({ onLogout }) => {
             return;
         }
 
-        // 2. Jika ada yang diubah, minta konfirmasi dulu!
         const result = await Swal.fire({
             title: 'Simpan Perubahan?',
             text: "Apakah kamu yakin data yang diedit sudah benar?",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#10b981', // Warna hijau
-            cancelButtonColor: '#d33',     // Warna merah
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#d33',
             confirmButtonText: 'Ya, Simpan!',
             cancelButtonText: 'Cek Lagi'
         });
 
-        // 3. Jika diklik "Ya, Simpan!" barulah proses simpan ke database
         if (result.isConfirmed) {
             try {
                 Swal.fire({
@@ -125,7 +124,7 @@ const Dashboard = ({ onLogout }) => {
 
                 await updateJurnal(editData.id, editData);
                 
-                setIsEditing(false); // Kembali ke tabel
+                setIsEditing(false); 
                 setIsFormDirty(false); 
                 await fetchData();
                 
@@ -136,7 +135,7 @@ const Dashboard = ({ onLogout }) => {
         }
     };
 
-    // --- FUNGSI ALERT KONFIRMASI SAAT KLIK BATAL EDIT ---
+    // --- FUNGSI KLIK BATAL (Dengan Alert Peringatan Hilang Data) ---
     const handleCancelEdit = () => {
         if (isFormDirty) {
             Swal.fire({
@@ -150,15 +149,14 @@ const Dashboard = ({ onLogout }) => {
                 cancelButtonText: 'Kembali Mengedit'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    setIsEditing(false); // Kembali ke tabel
+                    setIsEditing(false); 
                     setIsFormDirty(false);
                 }
             });
         } else {
-            setIsEditing(false); // Langsung kembali kalau ga ada yg diubah
+            setIsEditing(false); 
         }
     };
-
 
     return (
         <div className="dashboard-layout">
@@ -171,7 +169,7 @@ const Dashboard = ({ onLogout }) => {
                         <h3>{isEditing ? '✏️ Edit Data Jurnal' : 'Data Jurnal Terdaftar'}</h3>
                         <p>{isEditing ? `Mengedit: ${editData?.nama}` : `Total: ${filteredJurnals.length} Jurnal`}</p>
                     </div>
-                    {/* Sembunyikan search bar saat lagi mode edit */}
+                    
                     {!isEditing && (
                         <div className="search-container">
                             <input type="text" placeholder="🔍 Cari Jurnal, Kampus, atau ISSN..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-input"/>
@@ -182,7 +180,7 @@ const Dashboard = ({ onLogout }) => {
 
                 <div className="content-wrapper">
                     
-                    {/* LOGIKA PERGANTIAN TAMPILAN (TABEL vs FORM) */}
+                    {/* LOGIKA PERGANTIAN TAMPILAN (TABEL vs FORM EDIT) */}
                     {!isEditing ? (
                         
                         /* --- VIEW 1: TABEL DATA --- */
@@ -190,48 +188,101 @@ const Dashboard = ({ onLogout }) => {
                             <table className="jurnal-table">
                                 <thead>
                                     <tr>
-                                        <th>No</th>
-                                        <th>Nama Jurnal</th>
-                                        <th>URL</th>
-                                        <th>Email</th>
-                                        <th>Kontak</th>
-                                        <th>Penerbit</th>
-                                        <th>Member DOI RJI</th>
-                                        <th>Akreditasi</th>
-                                        <th>Aksi</th>
+                                        {/* KOLOM NO & AKSI RATA TENGAH, SISANYA RATA KIRI */}
+                                        <th width="5%" style={{textAlign: 'center'}}>No</th>
+                                        <th width="20%" style={{textAlign: 'left'}}>Nama Jurnal</th>
+                                        <th width="15%" style={{textAlign: 'left'}}>ISSN</th>
+                                        <th width="10%" style={{textAlign: 'left'}}>URL Web</th>
+                                        <th width="15%" style={{textAlign: 'left'}}>Penerbit</th>
+                                        <th width="15%" style={{textAlign: 'left'}}>Kontak</th>
+                                        <th width="10%" style={{textAlign: 'left'}}>Member RJI</th>
+                                        <th width="10%" style={{textAlign: 'left'}}>Akreditasi Sinta</th>
+                                        <th width="10%" style={{textAlign: 'center'}}>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {loading ? (
-                                        <tr><td colSpan="9" align="center">Memuat database...</td></tr>
+                                        <tr><td colSpan="9" align="center" style={{padding: '40px'}}>Memuat database...</td></tr>
                                     ) : filteredJurnals.length > 0 ? (
                                         filteredJurnals.map((jurnal, index) => (
                                             <tr key={jurnal.id}>
                                                 <td style={{textAlign: 'center'}}>{index + 1}</td>
-                                                <td style={{fontWeight: 'bold'}}>{jurnal.nama || '-'}</td>
-                                                <td>{jurnal.url ? <a href={jurnal.url} target="_blank" rel="noreferrer">🌐 Web</a> : '-'}</td>
-                                                <td>{jurnal.email || '-'}</td>
-                                                <td>{jurnal.kontak || '-'}</td>
-                                                <td>{jurnal.penerbit || '-'}</td>
-                                                <td style={{textAlign: 'center'}}>
-                                                    {jurnal.member_doi_rji ? <span className="badge-rji">Ya</span> : 'Tidak'}
+                                                
+                                                {/* KOLOM NAMA JURNAL (Rata Kiri) */}
+                                                <td style={{textAlign: 'left'}}>
+                                                    <div style={{fontWeight: 'bold', color: '#1e293b', fontSize: '1rem'}}>
+                                                        {jurnal.nama || '-'}
+                                                    </div>
                                                 </td>
-                                                <td style={{textAlign: 'center'}}>
-                                                    <span className={`badge-sinta ${jurnal.akreditasi ? jurnal.akreditasi.replace(' ', '') : 'na'}`}>
-                                                        {jurnal.akreditasi || 'Belum'}
-                                                    </span>
+
+                                                {/* KOLOM KHUSUS ISSN (Rata Kiri) */}
+                                                <td style={{textAlign: 'left'}}>
+                                                    {jurnal.issn ? (
+                                                        <a href={`https://portal.issn.org/resource/ISSN/${jurnal.issn}`} target="_blank" rel="noreferrer" style={{color: '#2563eb', textDecoration: 'none', fontWeight: 'bold', backgroundColor: '#eff6ff', padding: '4px 8px', borderRadius: '4px', display: 'inline-block'}} title="Cek Validasi ISSN">
+                                                            {jurnal.issn}
+                                                        </a>
+                                                    ) : (
+                                                        <span style={{color: '#94a3b8', fontStyle: 'italic', fontSize: '0.85rem'}}>Kosong</span>
+                                                    )}
                                                 </td>
-                                                <td>
+
+                                                {/* KOLOM URL WEB (Rata Kiri) */}
+                                                <td style={{textAlign: 'left'}}>
+                                                    {jurnal.url ? (
+                                                        <a href={jurnal.url} target="_blank" rel="noreferrer" style={{color: '#FF8A00', textDecoration: 'none', fontWeight: 'bold'}}>
+                                                            🌐 Kunjungi
+                                                        </a>
+                                                    ) : '-'}
+                                                </td>
+                                                
+                                                {/* KOLOM PENERBIT (Rata Kiri) */}
+                                                <td style={{textAlign: 'left'}}>{jurnal.penerbit || '-'}</td>
+                                                
+                                                {/* KOLOM KONTAK (Rata Kiri) */}
+                                                <td style={{textAlign: 'left'}}>
+                                                    <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                                                        {jurnal.email && <span style={{fontSize: '0.85rem'}}>Email: {jurnal.email}</span>}
+                                                        {jurnal.kontak && <span style={{fontSize: '0.85rem'}}>Kontak: {jurnal.kontak}</span>}
+                                                        {(!jurnal.email && !jurnal.kontak) && '-'}
+                                                    </div>
+                                                </td>
+                                                
+                                                {/* KOLOM MEMBER RJI (Rata Kiri) */}
+                                                <td style={{textAlign: 'left'}}>
+                                                    {jurnal.member_doi_rji ? (
+                                                        <span style={{backgroundColor: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', border: '1px solid #bbf7d0'}}>Ya</span>
+                                                    ) : (
+                                                        <span style={{color: '#94a3b8', fontSize: '0.85rem'}}>Tidak</span>
+                                                    )}
+                                                </td>
+                                                
+                                                {/* KOLOM AKREDITASI SINTA (Rata Kiri) */}
+                                                <td style={{textAlign: 'left'}}>
+                                                    {jurnal.url_sinta && jurnal.url_sinta.trim() !== '' ? (
+                                                        <a href={jurnal.url_sinta} target="_blank" rel="noreferrer" style={{textDecoration: 'none'}}>
+                                                            <span className={`badge-sinta ${jurnal.akreditasi ? jurnal.akreditasi.replace(/\s+/g, '') : 'na'}`} title="Buka profil Sinta">
+                                                                {jurnal.akreditasi || 'Belum'} 🔗
+                                                            </span>
+                                                        </a>
+                                                    ) : (
+                                                        <span className={`badge-sinta ${jurnal.akreditasi ? jurnal.akreditasi.replace(/\s+/g, '') : 'na'}`}>
+                                                            {jurnal.akreditasi || 'Belum'}
+                                                        </span>
+                                                    )}
+                                                </td>
+
+                                                {/* KOLOM AKSI (Tetap Rata Tengah biar tombolnya rapi) */}
+                                                <td style={{textAlign: 'center'}}>
                                                     <div className="action-buttons">
-                                                        <button onClick={() => handleEditClick(jurnal)} className="btn-edit" title="Edit">✏️</button>
-                                                        <button id={`sync-${jurnal.id}`} onClick={() => handleSync(jurnal.id, jurnal.issn)} className="btn-sync" title="Sync Sinta">🔄</button>
-                                                        <button onClick={() => handleDelete(jurnal.id, jurnal.nama)} className="btn-delete" title="Hapus">🗑️</button>
+                                                        <button onClick={() => handleEditClick(jurnal)} className="btn-edit" title="Edit Data">Edit</button>
+                                                        <button id={`sync-${jurnal.id}`} onClick={() => handleSync(jurnal.id, jurnal.issn)} className="btn-sync" title="Auto Sync Sinta">Sync Sinta</button>
+                                                        <button onClick={() => handleDelete(jurnal.id, jurnal.nama)} className="btn-delete" title="Hapus Jurnal">Hapus</button>
                                                     </div>
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
-                                        <tr><td colSpan="9" align="center">Data kosong.</td></tr>
+                                        <tr><td colSpan="9" align="center" style={{padding: '40px'}}>Data kosong atau tidak ditemukan.</td></tr>
                                     )}
                                 </tbody>
                             </table>
@@ -239,12 +290,11 @@ const Dashboard = ({ onLogout }) => {
 
                     ) : (
 
-                        /* --- VIEW 2: FORM EDIT IN-PLACE (GAYA GRID RAPI) --- */
+                        /* --- VIEW 2: FORM EDIT IN-PLACE --- */
                         <div className="edit-form-card">
                             <form onSubmit={handleEditSubmit}>
                                 
                                 <div className="edit-form-grid">
-                                    {/* Kolom Kiri Kanan */}
                                     <div className="form-group full-width">
                                         <label>Nama Jurnal</label>
                                         <input type="text" name="nama" value={editData.nama || ''} onChange={handleEditChange} required />
@@ -296,12 +346,11 @@ const Dashboard = ({ onLogout }) => {
                                 
                                 <div className="form-actions-row">
                                     <button type="button" className="btn-cancel" onClick={handleCancelEdit}>✖ Batal Edit</button>
-                                    <button type="submit" className="btn-save">💾 Simpan Perubahan</button>
+                                    <button type="submit" className="btn-save"> Simpan Perubahan</button>
                                 </div>
                             </form>
                         </div>
                     )}
-
                 </div>
             </main>
         </div>
