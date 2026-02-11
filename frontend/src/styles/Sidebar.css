@@ -1,0 +1,150 @@
+/* ========================================= */
+/* TEMA OFF-WHITE (ABU-ABU MUDA) & ORANYE */
+/* ========================================= */
+
+/* --- HAMBURGER BUTTON --- */
+.hamburger-btn {
+    position: fixed;
+    top: 20px; /* Sejajar dengan Top Bar Dashboard */
+    left: 20px;
+    z-index: 10001; /* Selalu paling atas */
+    background-color: #ffffff; 
+    color: #FF8A00; /* Ikon Oranye */
+    border: 1px solid #cbd5e1;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.hamburger-btn:hover {
+    background-color: #fffaf0;
+    border-color: #FF8A00;
+}
+
+/* SAAT SIDEBAR TERBUKA: Tombol pindah ke dalam Sidebar */
+.hamburger-btn.open {
+    left: 200px; /* Lebar sidebar 250px, jadi dia pas di pojok kanan dalam sidebar */
+    background-color: transparent; /* Transparan biar nyatu sama header sidebar */
+    border-color: transparent;
+    box-shadow: none;
+    color: #64748b; /* Ikon jadi warna abu kalem saat menu terbuka */
+}
+.hamburger-btn svg { width: 26px; height: 26px; }
+
+/* --- SIDEBAR PANEL --- */
+.sidebar-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    background-color: #f8fafc; /* ABU-ABU SANGAT MUDA (Bukan putih murni) */
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+    z-index: 10000;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.03);
+}
+
+.sidebar-panel.closed {
+    transform: translateX(-100%);
+}
+
+/* --- ISI SIDEBAR --- */
+.sidebar-header {
+    padding: 25px 20px;
+    background-color: #f1f5f9; /* Abu-abu sedikit lebih gelap dari body sidebar */
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    color: #334155; 
+    font-size: 1.4rem;
+}
+
+.badge-admin {
+    background: #FF8A00; /* Label Oranye */
+    color: white; 
+    font-weight: 800;
+    padding: 3px 10px; 
+    border-radius: 4px;
+    font-size: 0.7rem; 
+    display: inline-block; 
+    margin-top: 5px;
+}
+
+.sidebar-menu {
+    padding: 20px 15px;
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px;
+}
+
+/* Menu Item */
+.menu-item {
+    display: flex; 
+    align-items: center;
+    padding: 12px 15px;
+    color: #475569; 
+    text-decoration: none; 
+    border-radius: 8px;
+    font-weight: 600; 
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.menu-item .icon { 
+    margin-right: 12px; 
+    font-size: 1.2rem; 
+}
+
+/* Hover & Active State */
+.menu-item:hover {
+    background-color: rgba(255, 138, 0, 0.1); /* Efek hover ringan (opsional) */
+    color: #FF8A00; 
+}
+
+/* GAYA KHUSUS UNTUK MENU AKTIF (Sesuai Permintaan) */
+.menu-item.active {
+    background-color: #FF8A00; /* Background Oranye */
+    color: #000000; /* Teks Hitam */
+    font-weight: bold; /* Ditebalkan sedikit */
+}
+
+/* Pastikan ikon juga berwarna hitam saat aktif */
+.menu-item.active .icon {
+    color: #000000;
+}
+
+.sidebar-footer { 
+    padding: 20px; 
+    border-top: 1px solid #e2e8f0; 
+    background-color: #f8fafc;
+}
+
+.btn-logout-side {
+    width: 100%;
+    background: white; 
+    color: #ef4444; 
+    border: 1px solid #fca5a5; 
+    padding: 12px;
+    border-radius: 8px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: 0.2s;
+}
+
+.btn-logout-side:hover { 
+    background: #ef4444; 
+    color: white; 
+    border-color: #ef4444;
+}

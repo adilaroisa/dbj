@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx'; 
-import { importExcel } from '../services/apiClient';
+import { importExcel } from '../services/apiClient'; 
+import Sidebar from '../components/Sidebar';
+import Swal from 'sweetalert2'; 
 import '../styles/Dashboard.css'; 
 import '../styles/ImportJurnal.css'; 
 
@@ -12,25 +14,21 @@ const ImportJurnal = ({ onLogout }) => {
     const [loading, setLoading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
 
-    const handleLogoutClick = () => {
-        if (onLogout) {
-            onLogout();
-        }
-    };
-
+    // --- FUNGSI BACA EXCEL ---
     const readExcel = (file) => {
         const reader = new FileReader();
         
         reader.onload = (e) => {
             const bstr = e.target.result;
             const workbook = XLSX.read(bstr, { type: 'binary' });
+            
             const sheetName = workbook.SheetNames[0];
             const sheet = workbook.Sheets[sheetName];
+            
             const rawData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
             
             const cleanData = rawData
                 .filter(row => {
-                    // A. Hapus Baris Kosong
                     const values = Object.values(row);
                     return values.some(val => val !== "" && val !== null && val !== undefined && String(val).trim().length > 0);
                 })
@@ -57,7 +55,7 @@ const ImportJurnal = ({ onLogout }) => {
             setFile(selectedFile);
             readExcel(selectedFile); 
         } else {
-            alert('Harap upload file Excel (.xlsx / .xls)');
+            Swal.fire('Format Salah', 'Harap upload file Excel (.xlsx / .xls)', 'error');
         }
     };
 
@@ -90,7 +88,7 @@ const ImportJurnal = ({ onLogout }) => {
     const handleUpload = async () => {
         if (!file) return;
         if (previewData.length === 0) {
-            alert("Tidak ada data valid yang bisa diupload!");
+            Swal.fire('Data Kosong', 'Tidak ada data valid yang bisa diupload!', 'warning');
             return;
         }
 
@@ -100,10 +98,19 @@ const ImportJurnal = ({ onLogout }) => {
         setLoading(true);
         try {
             const res = await importExcel(formData);
-            alert(res.data.message); 
-            navigate('/dashboard'); 
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: res.data.message || 'Import data selesai.',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                navigate('/dashboard'); 
+            });
+
         } catch (err) {
-            alert('Gagal Import: ' + (err.response?.data?.message || err.message));
+            Swal.fire('Gagal Import', err.response?.data?.message || err.message, 'error');
         } finally {
             setLoading(false);
         }
@@ -148,36 +155,15 @@ const ImportJurnal = ({ onLogout }) => {
 
     return (
         <div className="dashboard-layout">
-            <aside className="sidebar">
-                <div className="sidebar-header">
-                    <h2>Jurnal DIY</h2>
-                    <span className="badge-admin">Admin Panel</span>
-                </div>
-                
-                <nav className="sidebar-menu">
-                    <a href="/dashboard" className="menu-item">
-                        <span className="icon"></span> Dashboard
-                    </a>
-                    <a href="/add-jurnal" className="menu-item">
-                        <span className="icon"></span> Input Manual
-                    </a>
-                    <a href="#" className="menu-item active">
-                        <span className="icon"></span> Import Excel
-                    </a>
-                </nav>
-
-                <div className="sidebar-footer">
-                    <button onClick={handleLogoutClick} className="btn-logout-side">
-                         Logout
-                    </button>
-                </div>
-            </aside>
+            
+            {/* --- SIDEBAR DI SINI --- */}
+            <Sidebar onLogout={onLogout} />
 
             <main className="main-content">
-                <header className="top-bar">
-                    <h3>Import Data Excel</h3>
-                    <div className="user-profile">
-                        <span>Panel Import</span>
+                <header className="top-bar" style={{marginLeft: '40px'}}>
+                    <div className="top-bar-left">
+                        <h3>Import Data Excel</h3>
+                        <p>Panel Import</p>
                     </div>
                 </header>
 
@@ -205,7 +191,7 @@ const ImportJurnal = ({ onLogout }) => {
                                         accept=".xlsx, .xls"
                                         onChange={handleChange}
                                     />
-                                    <div className="upload-icon"></div>
+                                    <div className="upload-icon">📂</div>
                                     <div className="upload-text">
                                         <span>Drag & Drop file di sini atau <b>Klik untuk Cari</b></span>
                                     </div>
@@ -214,11 +200,11 @@ const ImportJurnal = ({ onLogout }) => {
                                 <div className="file-selected-area">
                                     <div className="file-header">
                                         <div className="file-name-badge">
-                                             {file.name} 
+                                            📄 {file.name} 
                                             <span className="row-count">({previewData.length} Baris Data Valid)</span>
                                         </div>
                                         <button onClick={removeFile} className="btn-remove-file">
-                                             Ganti File
+                                            ❌ Ganti File
                                         </button>
                                     </div>
 
@@ -246,7 +232,7 @@ const ImportJurnal = ({ onLogout }) => {
                                         
                                         {previewData.length === 0 && (
                                             <div className="preview-footer" style={{color: '#e74c3c', fontWeight: 'bold'}}>
-                                                 File terbaca kosong atau tidak ada baris data yang valid.
+                                                ⚠️ File terbaca kosong atau tidak ada baris data yang valid.
                                             </div>
                                         )}
                                         {previewData.length > 100 && (
@@ -260,7 +246,7 @@ const ImportJurnal = ({ onLogout }) => {
 
                             <div className="action-buttons-import">
                                 <button onClick={downloadTemplate} className="btn-template">
-                                     Download Template
+                                    📥 Download Template
                                 </button>
                                 
                                 <button 
@@ -268,7 +254,7 @@ const ImportJurnal = ({ onLogout }) => {
                                     className="btn-upload" 
                                     disabled={!file || loading || previewData.length === 0}
                                 >
-                                    {loading ? 'Mengupload...' : ' Upload ke Database'}
+                                    {loading ? 'Mengupload...' : '🚀 Upload ke Database'}
                                 </button>
                             </div>
 
