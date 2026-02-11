@@ -227,3 +227,121 @@
     align-items: center;
     gap: 5px;
 }
+
+/* ========================================= */
+/* --- GAYA FORM EDIT IN-PLACE (NON-POPUP) --- */
+/* ========================================= */
+
+.edit-form-card {
+    background-color: #ffffff;
+    padding: 35px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    border: 1px solid #e2e8f0;
+    max-width: 900px;
+    margin: 0 auto;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* SISTEM GRID 2 KOLOM YANG RAPI */
+.edit-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Membagi form menjadi 2 kolom sama besar */
+    gap: 20px 25px; /* Jarak atas-bawah dan Kiri-kanan */
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Class ini digunakan jika input ingin membentang dari ujung ke ujung */
+.form-group.full-width {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+.form-group input, 
+.form-group select {
+    padding: 12px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s ease;
+    background-color: #f8fafc;
+    color: #334155;
+}
+
+.form-group input:focus, 
+.form-group select:focus {
+    border-color: #FF8A00;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 138, 0, 0.1);
+}
+
+/* BARIS TOMBOL AKSI */
+.form-actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-cancel {
+    background-color: #f1f5f9;
+    color: #ef4444; /* Teks merah untuk batal */
+    border: 1px solid #fca5a5;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-save {
+    background-color: #FF8A00;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(255, 138, 0, 0.2);
+    transition: all 0.2s;
+}
+
+.btn-save:hover {
+    background-color: #e67e00;
+    transform: translateY(-2px);
+}
+
+/* Responsif untuk HP (Ubah jadi 1 kolom saja biar rapi) */
+@media (max-width: 768px) {
+    .edit-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-group.full-width {
+        grid-column: span 1;
+    }
+}
