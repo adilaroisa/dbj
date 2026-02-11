@@ -1,16 +1,55 @@
-const express = require('express');
-const router = express.Router();
 const Jurnal = require('../models/jurnal');
 const { fetchSintaData } = require('../services/SintaServices');
-const auth = require('../middleware/auth');
-const multer = require('multer');
 const xlsx = require('xlsx');
 const fs = require('fs');
 
-const upload = multer({ dest: 'uploads/' });
+// --- GET ALL DATA ---
+const getAllJurnals = async (req, res) => {
+    try {
+        const jurnals = await Jurnal.findAll({ 
+            order: [
+                ['penerbit', 'ASC'], 
+                ['nama', 'ASC']
+            ] 
+        });
+        res.json(jurnals);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 
-// --- 1. IMPORT EXCEL ---
-router.post('/import', auth, upload.single('file'), async (req, res) => {
+// --- CREATE MANUAL ---
+const createJurnal = async (req, res) => {
+    try {
+        const jurnal = await Jurnal.create(req.body);
+        res.status(201).json(jurnal);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+
+// --- UPDATE ---
+const updateJurnal = async (req, res) => {
+    try {
+        await Jurnal.update(req.body, { where: { id: req.params.id } });
+        res.json({ message: 'Update berhasil' });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+
+// --- DELETE ---
+const deleteJurnal = async (req, res) => {
+    try {
+        await Jurnal.destroy({ where: { id: req.params.id } });
+        res.json({ message: 'Berhasil dihapus' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// --- IMPORT EXCEL ---
+const importExcel = async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: 'File Excel wajib diupload' });
 
@@ -29,7 +68,6 @@ router.post('/import', auth, upload.single('file'), async (req, res) => {
             const url = row['Website'] || row['URL'] || null;
             const member_doi_rji = row['Member RJI'] ? true : false;
 
-            // Cek Duplikasi (Prioritas ISSN, lalu Nama)
             const existing = await Jurnal.findOne({ 
                 where: issn ? { issn } : { nama } 
             });
@@ -49,10 +87,10 @@ router.post('/import', auth, upload.single('file'), async (req, res) => {
         if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         res.status(500).json({ message: 'Gagal Import: ' + err.message });
     }
-});
+};
 
-// --- 2. SYNC SINTA ---
-router.patch('/:id/sync-sinta', auth, async (req, res) => {
+// --- SYNC SINTA ---
+const syncSinta = async (req, res) => {
     try {
         const { id } = req.params;
         const jurnal = await Jurnal.findByPk(id);
@@ -80,51 +118,13 @@ router.patch('/:id/sync-sinta', auth, async (req, res) => {
     } catch (err) {
         res.status(500).json({ message: 'Gagal Sync: ' + err.message });
     }
-});
+};
 
-// --- 3. GET DATA (PENGURUTAN DIPERBAIKI) ---
-router.get('/', async (req, res) => {
-    try {
-        // PERUBAHAN DI SINI:
-        // Urutkan berdasarkan 'penerbit' (Institusi) A-Z, lalu 'nama' jurnal A-Z.
-        // Ini membuat jurnal dari kampus yang sama akan menempel jadi satu grup.
-        const jurnals = await Jurnal.findAll({ 
-            order: [
-                ['penerbit', 'ASC'], 
-                ['nama', 'ASC']
-            ] 
-        });
-        res.json(jurnals);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-router.post('/', auth, async (req, res) => {
-    try {
-        const jurnal = await Jurnal.create(req.body);
-        res.status(201).json(jurnal);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
-
-router.put('/:id', auth, async (req, res) => {
-    try {
-        await Jurnal.update(req.body, { where: { id: req.params.id } });
-        res.json({ message: 'Update berhasil' });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
-
-router.delete('/:id', auth, async (req, res) => {
-    try {
-        await Jurnal.destroy({ where: { id: req.params.id } });
-        res.json({ message: 'Berhasil dihapus' });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-module.exports = router;
+module.exports = {
+    getAllJurnals,
+    createJurnal,
+    updateJurnal,
+    deleteJurnal,
+    importExcel,
+    syncSinta
+};

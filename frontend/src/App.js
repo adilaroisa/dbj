@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import Login from './components/Login'; 
-import Register from './components/Register'; 
+import Login from './auth/Login'; 
+import Register from './auth/Register';
 import Dashboard from './components/Dashboard';
 import ImportJurnal from './components/ImportJurnal'; 
 import './App.css';

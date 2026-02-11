@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getJurnals, syncSinta, deleteJurnal } from '../services/api';
-import '../styles/dashboard.css';
+import '../styles/Dashboard.css';
 
 const Dashboard = ({ onLogout }) => {
     const [jurnals, setJurnals] = useState([]);
@@ -46,7 +46,7 @@ const Dashboard = ({ onLogout }) => {
         if (!issn) return alert('ISSN kosong, tidak bisa sync!');
         try {
             const btn = document.getElementById(`sync-${id}`);
-            if(btn) btn.innerText = "⏳";
+            if(btn) btn.innerText = "";
             await syncSinta(id);
             await fetchData(); 
             alert('Sinkronisasi Selesai!');
@@ -76,19 +76,19 @@ const Dashboard = ({ onLogout }) => {
                 
                 <nav className="sidebar-menu">
                     <a href="#" className="menu-item active">
-                        <span className="icon">📊</span> Dashboard
+                        <span className="icon"></span> Dashboard
                     </a>
                     <a href="/add-jurnal" className="menu-item">
-                        <span className="icon">📝</span> Input Manual
+                        <span className="icon"></span> Input Manual
                     </a>
                     <a href="/import-jurnal" className="menu-item">
-                        <span className="icon">📂</span> Import Excel
+                        <span className="icon"></span> Import Excel
                     </a>
                 </nav>
 
                 <div className="sidebar-footer">
                     <button onClick={handleLogoutClick} className="btn-logout-side">
-                        🚪 Logout
+                         Logout
                     </button>
                 </div>
             </aside>
