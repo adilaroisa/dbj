@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import apiClient from '../services/apiClient';
-import '../styles/ImportJurnal.css'; // Memakai style yang sudah ada agar konsisten
+import '../styles/InputManual.css'; 
 
 const InputManual = ({ onLogout }) => {
     const navigate = useNavigate();
@@ -30,7 +30,7 @@ const InputManual = ({ onLogout }) => {
         e.preventDefault();
         setLoading(true);
         try {
-            // Membersihkan ISSN dari tanda strip sebelum kirim
+            // Bersihkan ISSN dari tanda strip
             const payload = {
                 ...formData,
                 issn: formData.issn.replace(/-/g, '')
@@ -48,43 +48,53 @@ const InputManual = ({ onLogout }) => {
 
     return (
         <div className="dashboard-container">
+            {/* Sidebar akan otomatis menyuntikkan style margin ke div .content di bawah ini */}
             <Sidebar onLogout={onLogout} />
+            
             <div className="content">
-                <div className="import-container">
+                <div className="manual-container">
                     <h2>Input Manual Jurnal</h2>
-                    <p>Masukkan detail jurnal secara manual ke dalam database DIY.</p>
+                    <p>Lengkapi formulir di bawah ini untuk menambahkan data jurnal baru secara manual.</p>
                     
                     <form onSubmit={handleSubmit} className="manual-form-grid">
-                        <div className="form-group">
+                        
+                        {/* Nama Jurnal (Lebar Penuh) */}
+                        <div className="form-group full-width">
                             <label>Nama Jurnal</label>
-                            <input type="text" name="nama" value={formData.nama} onChange={handleChange} required placeholder="Contoh: Jurnal Teknologi" />
+                            <input type="text" name="nama" value={formData.nama} onChange={handleChange} required placeholder="Contoh: Jurnal Teknologi Informasi" />
                         </div>
 
-                        <div className="form-group">
-                            <label>ISSN (8 Digit)</label>
-                            <input type="text" name="issn" value={formData.issn} onChange={handleChange} placeholder="Contoh: 1234-5678" />
-                        </div>
-
+                        {/* Penerbit */}
                         <div className="form-group">
                             <label>Penerbit / Kampus</label>
                             <input type="text" name="penerbit" value={formData.penerbit} onChange={handleChange} placeholder="Contoh: Universitas Gadjah Mada" />
                         </div>
 
+                        {/* ISSN */}
                         <div className="form-group">
-                            <label>URL Website</label>
-                            <input type="url" name="url" value={formData.url} onChange={handleChange} placeholder="https://..." />
+                            <label>ISSN (8 Digit)</label>
+                            <input type="text" name="issn" value={formData.issn} onChange={handleChange} placeholder="Contoh: 20881234" />
                         </div>
 
+                        {/* URL (Lebar Penuh) */}
+                        <div className="form-group full-width">
+                            <label>URL Website</label>
+                            <input type="url" name="url" value={formData.url} onChange={handleChange} placeholder="https://jurnal.ugm.ac.id/..." />
+                        </div>
+
+                        {/* Email */}
                         <div className="form-group">
                             <label>Email Pengelola</label>
-                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="admin@jurnal.ac.id" />
+                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="editor@jurnal.ac.id" />
                         </div>
 
+                        {/* Kontak WA */}
                         <div className="form-group">
-                            <label>Kontak / WA</label>
-                            <input type="text" name="kontak" value={formData.kontak} onChange={handleChange} placeholder="0812..." />
+                            <label>Kontak / WhatsApp</label>
+                            <input type="text" name="kontak" value={formData.kontak} onChange={handleChange} placeholder="0812xxxx" />
                         </div>
 
+                        {/* Akreditasi */}
                         <div className="form-group">
                             <label>Status Akreditasi</label>
                             <select name="akreditasi" value={formData.akreditasi} onChange={handleChange}>
@@ -99,18 +109,22 @@ const InputManual = ({ onLogout }) => {
                             </select>
                         </div>
 
+                        {/* Checkbox RJI */}
                         <div className="form-group checkbox-group">
-                            <label>
-                                <input type="checkbox" name="member_doi_rji" checked={formData.member_doi_rji} onChange={handleChange} />
-                                Member DOI RJI
+                            <input type="checkbox" id="rji" name="member_doi_rji" checked={formData.member_doi_rji} onChange={handleChange} />
+                            <label htmlFor="rji">
+                                Jurnal ini adalah <strong>Member DOI RJI</strong>
                             </label>
                         </div>
 
+                        {/* Tombol Aksi */}
                         <div className="form-actions">
-                            <button type="submit" className="btn-import" disabled={loading}>
-                                {loading ? 'Menyimpan...' : 'Simpan Jurnal'}
+                            <button type="button" className="btn-cancel" onClick={() => navigate('/dashboard')}>
+                                Batal
                             </button>
-                            <button type="button" className="btn-cancel" onClick={() => navigate('/dashboard')}>Batal</button>
+                            <button type="submit" className="btn-save" disabled={loading}>
+                                {loading ? 'Menyimpan...' : 'Simpan Data'}
+                            </button>
                         </div>
                     </form>
                 </div>

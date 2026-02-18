@@ -63,7 +63,7 @@ const Sidebar = ({ onLogout }) => {
                     <Link to="/dashboard" className={`menu-item ${location.pathname.includes('/dashboard') || location.pathname === '/' ? 'active' : ''}`}>
                         <span className="icon"></span> Dashboard
                     </Link>
-                    <Link to="/add-jurnal" className={`menu-item ${location.pathname.includes('/add-jurnal') ? 'active' : ''}`}>
+                    <Link to="/input-manual" className={`menu-item ${location.pathname.includes('/input-manual') ? 'active' : ''}`}>
                         <span className="icon"></span> Input Manual
                     </Link>
                     <Link to="/import-jurnal" className={`menu-item ${location.pathname.includes('/import-jurnal') ? 'active' : ''}`}>
