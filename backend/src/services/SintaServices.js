@@ -1,52 +1,116 @@
 const axios = require('axios');
+const cheerio = require('cheerio');
 
-/**
- * Service untuk mengambil data Akreditasi Sinta berdasarkan ISSN
- * URL Target: https://sinta.kemdiktisaintek.go.id/journals/profile/[ID]
- * Karena Sinta sering ganti URL & API sulit diakses langsung tanpa scraping berat,
- * Kita buat simulasi logic dulu (Mocking) agar flow aplikasi jalan.
- * Nanti bisa diganti dengan Puppeteer/Cheerio beneran.
- */
+const fetchSintaData = async (issn, manualUrl = null) => {
+    // A. JIKA ADA URL MANUAL (Prioritas Utama)
+    // Ini menangani kasus "Jurnal ada tapi tidak muncul di pencarian"
+    if (manualUrl && manualUrl.includes('/journals/profile/')) {
+        console.log(`[SintaService] Menggunakan URL Manual: ${manualUrl}`);
+        try {
+            const response = await axios.get(manualUrl, {
+                headers: { 'User-Agent': 'Mozilla/5.0 (Compatible; Scraper/1.0)' },
+                validateStatus: status => status < 500
+            });
+            const $ = cheerio.load(response.data);
+            return parseProfilePage($, manualUrl); // Langsung baca profil
+        } catch (error) {
+            console.error("[SintaService] Gagal akses URL Manual:", error.message);
+            // Lanjut ke cara B jika manual gagal
+        }
+    }
 
-async function fetchSintaData(issn) {
-    console.log(`[SintaService] Mencari data untuk ISSN: ${issn}`);
-    const cleanIssn = issn.replace(/-/g, '').trim();
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // B. CARA LAMA (Cari via ISSN)
+    const cleanIssn = issn.replace(/[^0-9]/g, ''); 
+    const searchUrl = `https://sinta.kemdiktisaintek.go.id/journals/index/?q=${cleanIssn}`;
+    
+    console.log(`[SintaService] Searching ISSN: ${searchUrl}`);
 
     try {
-        // --- LOGIKA MOCKUP (SEMENTARA) ---
-        // Di real-world, di sini kita akan scraping ke web Sinta
-        // Tapi karena ini rawan error blokir, kita simulasi keberhasilan dulu
-        // agar fitur Dashboard bisa dites oleh Admin.
-        
-        // Skenario 1: Jika ISSN genap -> Anggap Ketemu (Sinta 2)
-        // Skenario 2: Jika ISSN ganjil -> Anggap Ketemu (Sinta 4)
-        // Skenario 3: Jika ISSN '00000000' -> Tidak Ditemukan
-        
-        const lastDigit = parseInt(cleanIssn.slice(-1));
-        
-        if (cleanIssn === '00000000') return null; // Tidak ketemu
+        const response = await axios.get(searchUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Compatible; Scraper/1.0)' },
+            maxRedirects: 5,
+            validateStatus: status => status < 500
+        });
 
-        let score = 'S3'; // Default
-        if (lastDigit % 2 === 0) score = 'S2';
-        else score = 'S4';
+        const $ = cheerio.load(response.data);
+        const finalUrl = response.request.res.responseUrl || searchUrl;
 
-        // Generate Random ID untuk Sinta & Garuda
-        const sintaId = Math.floor(Math.random() * 10000) + 1000;
-        const garudaId = Math.floor(Math.random() * 100000) + 10000;
+        // KASUS 1: Langsung Redirect ke Profil
+        if (finalUrl.includes('/journals/profile/')) {
+            return parseProfilePage($, finalUrl);
+        }
 
-        // Return Data Format
-        return {
-            issn: cleanIssn,
-            score: score, 
-            sintaId: sintaId.toString(),
-            garudaId: garudaId.toString()
-        };
+        // KASUS 2: Masih di Halaman List
+        return parseListPage($, cleanIssn);
 
     } catch (error) {
-        console.error('[SintaService Error]', error.message);
+        console.error("[SintaService] Error:", error.message);
         return null;
     }
-}
+};
+
+// --- LOGIKA BACA HALAMAN PROFIL ---
+const parseProfilePage = ($, url) => {
+    try {
+        const parts = url.split('/');
+        const sintaId = parts[parts.length - 1];
+
+        // Ambil Score Sinta
+        let score = "Belum Terakreditasi";
+        const badgeSrc = $('img[src*="/assets/img/sinta/"]').attr('src');
+        if (badgeSrc) {
+            const match = badgeSrc.match(/sinta(\d)/i);
+            if (match) score = `Sinta ${match[1]}`;
+        } else {
+            // Fallback Teks
+            const statText = $('.uk-text-uppercase').text();
+            if (statText.includes('S1')) score = 'Sinta 1';
+            else if (statText.includes('S2')) score = 'Sinta 2';
+            else if (statText.includes('S3')) score = 'Sinta 3';
+            else if (statText.includes('S4')) score = 'Sinta 4';
+            else if (statText.includes('S5')) score = 'Sinta 5';
+            else if (statText.includes('S6')) score = 'Sinta 6';
+        }
+
+        // Ambil Garuda ID
+        const garudaLink = $('a[href*="garuda.kemdikbud.go.id"]').attr('href');
+        let garudaId = null;
+        if (garudaLink) {
+            const gParts = garudaLink.split('/');
+            garudaId = gParts[gParts.length - 1];
+        }
+
+        return { sintaId, score, garudaId };
+
+    } catch (e) {
+        console.error("[SintaService] Parse Profile Error:", e.message);
+        return null;
+    }
+};
+
+// --- LOGIKA BACA LIST PENCARIAN ---
+const parseListPage = ($, queryIssn) => {
+    let result = null;
+    $('.uk-card').each((i, el) => {
+        const text = $(el).text().replace(/[^0-9]/g, '');
+        if (text.includes(queryIssn)) {
+            const link = $(el).find('a[href*="/journals/profile/"]').attr('href');
+            if (link) {
+                const parts = link.split('/');
+                const sintaId = parts[parts.length - 1];
+                
+                let score = "Belum Terakreditasi";
+                const img = $(el).find('img[src*="sinta"]').attr('src');
+                if (img) {
+                    const match = img.match(/sinta(\d)/i);
+                    if (match) score = `Sinta ${match[1]}`;
+                }
+                result = { sintaId, score, garudaId: null }; 
+                return false; 
+            }
+        }
+    });
+    return result;
+};
 
 module.exports = { fetchSintaData };

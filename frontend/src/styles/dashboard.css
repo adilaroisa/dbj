@@ -345,3 +345,19 @@
         grid-column: span 1;
     }
 }
+
+.badge-sinta.belum {
+    background-color: #e74c3c; 
+    color: white;
+    border: 1px solid #c0392b;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+.badge-sinta.belum:hover {
+    background-color: #c0392b;
+    cursor: default;
+}

@@ -14,6 +14,10 @@ const getAllJurnals = async (req, res) => {
 
 const createJurnal = async (req, res) => {
     try {
+        const { issn, nama } = req.body;
+        const existing = await Jurnal.findOne({ where: issn ? { issn } : { nama } });
+        if (existing) return res.status(400).json({ message: 'Gagal: Jurnal sudah terdaftar.' });
+
         const jurnal = await Jurnal.create(req.body);
         res.status(201).json(jurnal);
     } catch (err) {
@@ -32,54 +36,42 @@ const updateJurnal = async (req, res) => {
 
 const deleteJurnal = async (req, res) => {
     try {
-        const { id } = req.params;
-        if (!id) return res.status(400).json({ message: "ID Jurnal tidak valid." });
-        const deleted = await Jurnal.destroy({ where: { id: id } });
-        if (deleted === 0) return res.status(404).json({ message: "Jurnal tidak ditemukan." });
-        res.status(200).json({ message: 'Data berhasil dihapus' });
+        const deleted = await Jurnal.destroy({ where: { id: req.params.id } });
+        if (!deleted) return res.status(404).json({ message: "Tidak ditemukan." });
+        res.status(200).json({ message: 'Terhapus' });
     } catch (err) {
-        res.status(500).json({ message: "Gagal menghapus: " + err.message });
+        res.status(500).json({ message: err.message });
     }
 };
 
 const importExcel = async (req, res) => {
+    // (Kode Import Excel biarkan seperti sebelumnya / tidak berubah)
+    // ... Copy paste logika import excel sebelumnya jika perlu, atau biarkan file lama untuk fungsi ini
     try {
         if (!req.file) return res.status(400).json({ message: 'File Excel wajib diupload' });
-
         const workbook = xlsx.readFile(req.file.path);
         const data = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
         let successCount = 0;
-
         for (const row of data) {
             const nama = row['Nama Jurnal'] || row['Nama'] || 'Tanpa Nama';
             const penerbit = row['Institusi'] || row['Penerbit'] || '-';
             const issn = row['ISSN'] ? String(row['ISSN']).replace(/-/g, '') : null;
-            const email = row['Email'] || null;
-            const kontak = row['Kontak'] || row['WA'] || row['HP'] || null;
-            const url = row['Website'] || row['URL'] || null;
-            
-            // PERBAIKAN BUG RJI (1 = Ya, 0 = Tidak/Kosong)
-            const rawRJI = row['Member RJI'] || row['Member DOI RJI'] || '';
-            const member_doi_rji = String(rawRJI).toLowerCase().trim() === 'ya';
-
-            // Ambil Akreditasi & Sinta jika di Excel sudah ada
-            const akreditasi = row['Akreditasi'] || null;
-            const url_sinta = row['URL Sinta'] || null;
-
             const existing = await Jurnal.findOne({ where: issn ? { issn } : { nama } });
             if (!existing) {
                 await Jurnal.create({
-                    nama, penerbit, issn, email, kontak, url, member_doi_rji, akreditasi, url_sinta
+                    nama, penerbit, issn,
+                    email: row['Email'], kontak: row['Kontak'], url: row['Website'],
+                    member_doi_rji: String(row['Member RJI']).toLowerCase() === 'ya',
+                    akreditasi: row['Akreditasi'], url_sinta: row['URL Sinta']
                 });
                 successCount++;
             }
         }
-
         fs.unlinkSync(req.file.path);
-        res.json({ message: `Import Berhasil! ${successCount} jurnal baru ditambahkan.` });
+        res.json({ message: `Import Berhasil! ${successCount} data masuk.` });
     } catch (err) {
-        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        res.status(500).json({ message: 'Gagal Import: ' + err.message });
+        if (req.file) fs.unlinkSync(req.file.path);
+        res.status(500).json({ message: err.message });
     }
 };
 
@@ -87,20 +79,25 @@ const syncSinta = async (req, res) => {
     try {
         const { id } = req.params;
         const jurnal = await Jurnal.findByPk(id);
-        if (!jurnal || !jurnal.issn) return res.status(400).json({ message: 'ISSN kosong.' });
+        if (!jurnal) return res.status(404).json({ message: 'Jurnal tidak ditemukan.' });
 
-        const sintaData = await fetchSintaData(jurnal.issn);
+        // LOGIKA BARU: Kirim ISSN DAN URL yang tersimpan di DB
+        // Jadi kalau ISSN gagal, dia pakai URL Sinta yang kamu input manual
+        const sintaData = await fetchSintaData(jurnal.issn || '', jurnal.url_sinta);
+
         if (sintaData) {
             jurnal.akreditasi = sintaData.score;
             jurnal.sinta_id = sintaData.sintaId;
             jurnal.url_sinta = `https://sinta.kemdiktisaintek.go.id/journals/profile/${sintaData.sintaId}`;
-            jurnal.url_garuda = `https://garuda.kemdikbud.go.id/journal/view/${sintaData.garudaId}`;
+            if (sintaData.garudaId) {
+                jurnal.url_garuda = `https://garuda.kemdikbud.go.id/journal/view/${sintaData.garudaId}`;
+            }
             await jurnal.save();
-            return res.json({ message: 'Sync Sukses!', data: sintaData });
+            return res.json({ message: 'Sync Sukses! Data Sinta & Garuda diperbarui.', data: sintaData });
         } else {
             jurnal.akreditasi = "Belum Terakreditasi";
             await jurnal.save();
-            return res.status(404).json({ message: 'Tidak ditemukan di Sinta.' });
+            return res.status(200).json({ message: 'Tidak ditemukan di Sinta. Status: Belum Terakreditasi.' });
         }
     } catch (err) {
         res.status(500).json({ message: 'Gagal Sync: ' + err.message });

@@ -10,7 +10,6 @@ const Dashboard = ({ onLogout }) => {
     const [username, setUsername] = useState('Admin');
     const [searchTerm, setSearchTerm] = useState(''); 
 
-    // STATE UNTUK EDIT TAMPILAN (BUKAN MODAL/POP-UP)
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState(null);
     const [isFormDirty, setIsFormDirty] = useState(false); 
@@ -77,7 +76,6 @@ const Dashboard = ({ onLogout }) => {
         }
     };
 
-    // --- FUNGSI EDIT IN-PLACE ---
     const handleEditClick = (jurnal) => {
         setEditData(jurnal); 
         setIsEditing(true); 
@@ -86,11 +84,18 @@ const Dashboard = ({ onLogout }) => {
 
     const handleEditChange = (e) => {
         const { name, value } = e.target;
-        setEditData({ ...editData, [name]: name === 'member_doi_rji' ? value === 'true' : value });
+        
+        // --- LOGIKA BARU: ISSN EDIT HANYA ANGKA ---
+        if (name === 'issn') {
+            const numericValue = value.replace(/[^0-9]/g, '');
+            setEditData({ ...editData, [name]: numericValue });
+        } else {
+            setEditData({ ...editData, [name]: name === 'member_doi_rji' ? value === 'true' : value });
+        }
+        
         setIsFormDirty(true); 
     };
 
-    // --- FUNGSI KLIK SIMPAN (Dengan Alert Konfirmasi) ---
     const handleEditSubmit = async (e) => {
         e.preventDefault();
 
@@ -135,7 +140,6 @@ const Dashboard = ({ onLogout }) => {
         }
     };
 
-    // --- FUNGSI KLIK BATAL (Dengan Alert Peringatan Hilang Data) ---
     const handleCancelEdit = () => {
         if (isFormDirty) {
             Swal.fire({
@@ -163,7 +167,6 @@ const Dashboard = ({ onLogout }) => {
             <Sidebar onLogout={onLogout} />
 
             <main className="main-content">
-                {/* TOP BAR */}
                 <header className="top-bar">
                     <div className="top-bar-left">
                         <h3>{isEditing ? '✏️ Edit Data Jurnal' : 'Data Jurnal Terdaftar'}</h3>
@@ -180,15 +183,11 @@ const Dashboard = ({ onLogout }) => {
 
                 <div className="content-wrapper">
                     
-                    {/* LOGIKA PERGANTIAN TAMPILAN (TABEL vs FORM EDIT) */}
                     {!isEditing ? (
-                        
-                        /* --- VIEW 1: TABEL DATA --- */
                         <div className="table-responsive">
                             <table className="jurnal-table">
                                 <thead>
                                     <tr>
-                                        {/* KOLOM NO & AKSI RATA TENGAH, SISANYA RATA KIRI */}
                                         <th width="5%" style={{textAlign: 'center'}}>No</th>
                                         <th width="20%" style={{textAlign: 'left'}}>Nama Jurnal</th>
                                         <th width="15%" style={{textAlign: 'left'}}>ISSN</th>
@@ -208,14 +207,12 @@ const Dashboard = ({ onLogout }) => {
                                             <tr key={jurnal.id}>
                                                 <td style={{textAlign: 'center'}}>{index + 1}</td>
                                                 
-                                                {/* KOLOM NAMA JURNAL (Rata Kiri) */}
                                                 <td style={{textAlign: 'left'}}>
                                                     <div style={{fontWeight: 'bold', color: '#1e293b', fontSize: '1rem'}}>
                                                         {jurnal.nama || '-'}
                                                     </div>
                                                 </td>
 
-                                                {/* KOLOM KHUSUS ISSN (Rata Kiri) */}
                                                 <td style={{textAlign: 'left'}}>
                                                     {jurnal.issn ? (
                                                         <a href={`https://portal.issn.org/resource/ISSN/${jurnal.issn}`} target="_blank" rel="noreferrer" style={{color: '#2563eb', textDecoration: 'none', fontWeight: 'bold', backgroundColor: '#eff6ff', padding: '4px 8px', borderRadius: '4px', display: 'inline-block'}} title="Cek Validasi ISSN">
@@ -226,7 +223,6 @@ const Dashboard = ({ onLogout }) => {
                                                     )}
                                                 </td>
 
-                                                {/* KOLOM URL WEB (Rata Kiri) */}
                                                 <td style={{textAlign: 'left'}}>
                                                     {jurnal.url ? (
                                                         <a href={jurnal.url} target="_blank" rel="noreferrer" style={{color: '#FF8A00', textDecoration: 'none', fontWeight: 'bold'}}>
@@ -235,10 +231,8 @@ const Dashboard = ({ onLogout }) => {
                                                     ) : '-'}
                                                 </td>
                                                 
-                                                {/* KOLOM PENERBIT (Rata Kiri) */}
                                                 <td style={{textAlign: 'left'}}>{jurnal.penerbit || '-'}</td>
                                                 
-                                                {/* KOLOM KONTAK (Rata Kiri) */}
                                                 <td style={{textAlign: 'left'}}>
                                                     <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
                                                         {jurnal.email && <span style={{fontSize: '0.85rem'}}>Email: {jurnal.email}</span>}
@@ -247,7 +241,6 @@ const Dashboard = ({ onLogout }) => {
                                                     </div>
                                                 </td>
                                                 
-                                                {/* KOLOM MEMBER RJI (Rata Kiri) */}
                                                 <td style={{textAlign: 'left'}}>
                                                     {jurnal.member_doi_rji ? (
                                                         <span style={{backgroundColor: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', border: '1px solid #bbf7d0'}}>Ya</span>
@@ -256,22 +249,20 @@ const Dashboard = ({ onLogout }) => {
                                                     )}
                                                 </td>
                                                 
-                                                {/* KOLOM AKREDITASI SINTA (Rata Kiri) */}
                                                 <td style={{textAlign: 'left'}}>
-                                                    {jurnal.url_sinta && jurnal.url_sinta.trim() !== '' ? (
+                                                    {jurnal.url_sinta && jurnal.url_sinta.trim() !== '' && jurnal.akreditasi && jurnal.akreditasi !== 'Belum Terakreditasi' ? (
                                                         <a href={jurnal.url_sinta} target="_blank" rel="noreferrer" style={{textDecoration: 'none'}}>
-                                                            <span className={`badge-sinta ${jurnal.akreditasi ? jurnal.akreditasi.replace(/\s+/g, '') : 'na'}`} title="Buka profil Sinta">
-                                                                {jurnal.akreditasi || 'Belum'} 🔗
+                                                            <span className={`badge-sinta ${jurnal.akreditasi.replace(/\s+/g, '')}`} title="Buka profil Sinta">
+                                                                {jurnal.akreditasi} 🔗
                                                             </span>
                                                         </a>
                                                     ) : (
-                                                        <span className={`badge-sinta ${jurnal.akreditasi ? jurnal.akreditasi.replace(/\s+/g, '') : 'na'}`}>
-                                                            {jurnal.akreditasi || 'Belum'}
+                                                        <span className={`badge-sinta ${(!jurnal.akreditasi || jurnal.akreditasi === 'Belum Terakreditasi') ? 'belum' : 'na'}`}>
+                                                            {jurnal.akreditasi || 'Belum Terakreditasi'}
                                                         </span>
                                                     )}
                                                 </td>
 
-                                                {/* KOLOM AKSI (Tetap Rata Tengah biar tombolnya rapi) */}
                                                 <td style={{textAlign: 'center'}}>
                                                     <div className="action-buttons">
                                                         <button onClick={() => handleEditClick(jurnal)} className="btn-edit" title="Edit Data">Edit</button>
@@ -290,7 +281,6 @@ const Dashboard = ({ onLogout }) => {
 
                     ) : (
 
-                        /* --- VIEW 2: FORM EDIT IN-PLACE --- */
                         <div className="edit-form-card">
                             <form onSubmit={handleEditSubmit}>
                                 
@@ -306,8 +296,14 @@ const Dashboard = ({ onLogout }) => {
                                     </div>
                                     
                                     <div className="form-group">
-                                        <label>ISSN</label>
-                                        <input type="text" name="issn" value={editData.issn || ''} onChange={handleEditChange} />
+                                        <label>ISSN (Hanya Angka)</label>
+                                        <input 
+                                            type="text" 
+                                            name="issn" 
+                                            value={editData.issn || ''} 
+                                            onChange={handleEditChange} 
+                                            placeholder="2088xxxx (Tanpa Strip)"
+                                        />
                                     </div>
 
                                     <div className="form-group">
