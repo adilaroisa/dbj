@@ -70,6 +70,7 @@ const Sidebar = ({ onLogout }) => {
                         <span className="icon"></span> Import Excel
                     </Link>
                 </nav>
+                
 
                 <div className="sidebar-footer">
                     <button onClick={handleLogoutClick} className="btn-logout-side">🚪 Logout</button>

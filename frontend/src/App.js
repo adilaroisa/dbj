@@ -4,6 +4,7 @@ import Login from './auth/Login';
 import Register from './auth/Register';
 import Dashboard from './pages/Dashboard';
 import ImportJurnal from './pages/ImportJurnal'; 
+import InputManual from './pages/InputManual';
 import './App.css';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
     else if (location.pathname === '/register') document.title = 'Daftar - Database Jurnal DIY';
     else if (location.pathname === '/dashboard') document.title = 'Dashboard Admin';
     else if (location.pathname === '/import-jurnal') document.title = 'Import Excel - Admin';
+    else if (location.pathname === '/input-manual') document.title = 'Input Manual - Admin';
   }, [location]);
 
   const handleLoginSuccess = () => {
@@ -47,6 +49,15 @@ function App() {
           element={
             <PrivateRoute>
               <Dashboard onLogout={handleLogout} />
+            </PrivateRoute>
+          } 
+        />
+
+        <Route 
+          path="/input-manual" 
+          element={
+            <PrivateRoute>
+              <InputManual onLogout={handleLogout} />
             </PrivateRoute>
           } 
         />
